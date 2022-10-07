@@ -1,0 +1,35 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Format
+        run: cargo +stable fmt && git diff --exit-code
+
+      - name: Install cargo-dylint
+        run: cargo install cargo-dylint
+
+      - name: Install dylint-link
+        run: cargo install dylint-link
+
+      - name: Build
+        run: cargo build
+
+      - name: List
+        run: DYLINT_LIBRARY_PATH=$PWD/target/debug cargo dylint --list | grep -w fill_me_in
+
+      - name: Test
+        run: cargo test
+
+      - name: Doc Test
+        # MinerSebas: Doc-Tests cannot be run on "cdylib" crates.
+        # Due to this the crate will be changed to a regular "lib" and then run the Doc-Tests.
+        run: |
+          sed -i 's/"cdylib"/"lib"/g' Cargo.toml
+          cargo test --doc
