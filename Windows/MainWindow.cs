@@ -1,15 +1,10 @@
-﻿using BrightIdeasSoftware;
-using NtApiDotNet;
-using NtApiDotNet.Win32;
-using RpcInvestigator.TabPages;
+﻿using RpcInvestigator.TabPages;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
 using System.Windows.Forms;
 
 namespace RpcInvestigator
@@ -195,8 +190,51 @@ namespace RpcInvestigator
         private async void refreshLibraryToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToggleMenu(false);
-            _ = await m_Library.Refresh(m_Settings, progressBar, statusLabel);
+            int workSize = 0;
+            int max = 0;
+            _ = await m_Library.Refresh(
+                m_Settings,
+                //
+                // Initialize progress bar.
+                //
+                (ArrayList args) =>
+                {
+                    statusStrip1.Invoke((MethodInvoker)(() =>
+                    {
+                        workSize = (int)args[0];
+                        max = (int)args[1];
+                        var message = (string)args[2];
+                        progressBar.Visible = true;
+                        progressBar.Step = 1;
+                        progressBar.Value = 0;
+                        progressBar.Visible = true;
+                        progressBar.Maximum = max;
+                        statusLabel.Text = message;
+                    }));
+                },
+                //
+                // Update progress bar
+                //
+                (string message) =>
+                {
+                    statusStrip1.Invoke((MethodInvoker)(() =>
+                    {
+                        progressBar.PerformStep();
+                        statusLabel.Text = message.Replace("<current>",
+                            (progressBar.Value * workSize).ToString()).Replace(
+                            "<total>", (max * workSize).ToString());
+                    }));
+                },
+                //
+                // Complete
+                //
+                (string message) =>
+                {
+                    statusLabel.Text = message;
+                });
             ToggleMenu(true);
+            progressBar.Value = 0;
+            progressBar.Visible = false;
         }
 
         private void exportLibraryAsTextToolStripMenuItem_Click(object sender, EventArgs e)

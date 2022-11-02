@@ -93,7 +93,7 @@ namespace RpcInvestigator.TabPages
 
             if (!TabExists("Servers", out tab))
             {
-                tab = new RpcLibraryServerList(m_Library);
+                tab = new RpcLibraryServerList(m_Library, this);
                 m_TabControl.TabPages.Add(tab);
             }
             libraryServersTab = tab as RpcLibraryServerList;

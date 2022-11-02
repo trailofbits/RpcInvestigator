@@ -50,7 +50,7 @@ namespace RpcInvestigator
             {
                 target = Path.Combine(m_DefaultPath, m_DefaultSettingsFileName);
             }
-            
+
             string json;
             try
             {

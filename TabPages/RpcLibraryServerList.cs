@@ -10,6 +10,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using NtApiDotNet;
 using System.Diagnostics;
 using System.Linq;
+using RpcInvestigator.TabPages;
 
 namespace RpcInvestigator
 {
@@ -17,9 +18,11 @@ namespace RpcInvestigator
     {
         public FastObjectListView m_Listview;
         private RpcLibrary m_Library;
+        private TabManager m_Manager;
 
-        public RpcLibraryServerList(RpcLibrary Library)
+        public RpcLibraryServerList(RpcLibrary Library, TabManager Manager)
         {
+            m_Manager = Manager;
             m_Library = Library;
             m_Listview = new FastObjectListView();
             Random random = new Random();
@@ -43,6 +46,22 @@ namespace RpcInvestigator
             m_Listview.ShowGroups = false;
             m_Listview.UseFiltering = true;
             m_Listview.Alignment = ListViewAlignment.Left;
+            //
+            // When a listview row is double-clicked, a new tab will open with endpoints
+            // for the selected RPC server. When a row is right-clicked,
+            // a context menu shows.
+            //
+            m_Listview.DoubleClick += new EventHandler((object obj, EventArgs e2) =>
+            {
+                if (m_Listview.SelectedObjects == null ||
+                    m_Listview.SelectedObjects.Count == 0)
+                {
+                    return;
+                }
+                var selectedRow = m_Listview.SelectedObjects.Cast<RpcServer>().ToList()[0];
+                m_Manager.LoadRpcEndpointsTab(
+                    selectedRow.Name, selectedRow.Endpoints.ToList(), selectedRow.Name);
+            });
             m_Listview.CellRightClick += RightClickHandler;
             Generator.GenerateColumns(m_Listview, typeof(RpcServer), true);
             foreach (var column in m_Listview.AllColumns)

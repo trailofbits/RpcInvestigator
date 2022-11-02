@@ -77,6 +77,15 @@ namespace RpcInvestigator
             return m_Listview.Objects.Cast<RpcAlpcServer>().Count();
         }
 
+        public List<RpcAlpcServer> GetAll()
+        {
+            if (m_Listview.Objects == null)
+            {
+                return new List<RpcAlpcServer>();
+            }
+            return m_Listview.Objects.Cast<RpcAlpcServer>().ToList();
+        }
+
         public void Build()
         {
             IEnumerable<RpcAlpcServer> servers;
@@ -171,25 +180,11 @@ namespace RpcInvestigator
             }
             var args = (CellRightClickEventArgs)tag;
             var alpcServer = args.Model as RpcAlpcServer;
-            if (alpcServer.Endpoints == null ||
-                alpcServer.Endpoints.Count() == 0)
-            {
-                return;
-            }
-
             var filter = new RpcLibraryFilter
             {
-                FilterType = RpcLibraryFilterType.FilterByInterfaceIdAndVersion,
-                InterfaceIdAndVersion = new Dictionary<string, string>()
+                FilterType = RpcLibraryFilterType.FilterByKeyword,
+                Keyword = alpcServer.Name
             };
-
-            alpcServer.Endpoints.ToList().ForEach(endpoint =>
-            {
-                filter.InterfaceIdAndVersion.Add(
-                    endpoint.InterfaceId.ToString(),
-                    endpoint.InterfaceVersion.ToString());
-            });
-
             m_TabManager.LoadRpcLibraryServersTab(filter);
         }
     }

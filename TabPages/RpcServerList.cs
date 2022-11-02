@@ -141,6 +141,15 @@ namespace RpcInvestigator
             return m_Listview.Objects.Cast<RpcServer>().Count();
         }
 
+        public List<RpcServer> GetAll()
+        {
+            if (m_Listview.Objects == null)
+            {
+                return new List<RpcServer>();
+            }
+            return m_Listview.Objects.Cast<RpcServer>().ToList();
+        }
+
         private
         void
         RightClickHandler(
