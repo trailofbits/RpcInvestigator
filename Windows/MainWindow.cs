@@ -27,8 +27,15 @@ namespace RpcInvestigator
             //
             // Initialize trace
             //
+            var logFilename = DateTime.Now.ToString("yyyy-MM-dd-HHmmss") + ".txt";
             var location = Path.Combine(new string[] { m_TraceFileDir,
-                            Path.GetRandomFileName() + ".txt" });
+                            logFilename });
+
+            if (!Directory.Exists(m_TraceFileDir))
+            {
+                Directory.CreateDirectory(m_TraceFileDir);
+            }
+
             Trace.AutoFlush = true;
             Trace.Listeners.Add(new TextWriterTraceListener(location, "RpcInvestigatorListener"));
             trace.Level = TraceLevel.Verbose;
