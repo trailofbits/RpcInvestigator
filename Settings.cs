@@ -35,6 +35,10 @@ namespace RpcInvestigator
                         m_DefaultPath + "': " + ex.Message);
                 }
             }
+
+            m_SymbolPath = @"srv*c:\\symbols*https://msdl.microsoft.com/download/symbols";
+            m_DbghelpPath = FindDbghelpDll();
+            m_TraceLevel = TraceLevel.Info;
         }
 
         public static void Validate (Settings Object)
@@ -103,6 +107,48 @@ namespace RpcInvestigator
                 return new Settings();
             }
             return Load(target);
+        }
+
+        static private string FindDbghelpDll()
+        {
+            string baseDir = "C:\\Program Files (x86)\\Windows Kits\\10\\bin";
+            List<string> potentialKits = new List<string>();
+            foreach (string dirname in Directory.GetDirectories(baseDir))
+            {
+                if (Path.GetFileName(dirname).StartsWith("10."))
+                {
+                    potentialKits.Add(dirname);
+                }
+            }
+
+            // Sort and then reverse potential kits so that we look at the most recent kit first
+            potentialKits.Sort();
+            potentialKits.Reverse();
+            foreach (string dirname in potentialKits)
+            {
+                string dll = $"{dirname}\\x64\\dbghelp.dll";
+                try
+                {
+                    FileInfo info = new FileInfo(dll);
+                    if (info.Exists && info.Length > 0)
+                    {
+                        return dll;
+                    }
+                } catch { }
+            }
+
+            // We haven't found a dbghelp.dll module for any installed kits. Final try is to get
+            // the debugger's version of dbghelp.dll
+            try
+            {
+                FileInfo info = new FileInfo("C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\dbghelp.dll");
+                if (info.Exists && info.Length > 0)
+                {
+                    return info.FullName;
+                }
+            } catch { }
+
+            return null;
         }
     }
 }
