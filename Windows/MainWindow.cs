@@ -170,7 +170,14 @@ namespace RpcInvestigator
 
         private void logsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(m_TraceFileDir);
+            if (File.Exists(m_TraceFileDir))
+            {
+                Process.Start(m_TraceFileDir);
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Log file was not found");
+            }
         }
 
         private void libraryServersToolStripMenuItem_Click(object sender, EventArgs e)
@@ -240,10 +247,17 @@ namespace RpcInvestigator
         private void exportLibraryAsTextToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToggleMenu(false);
-            var location = Path.Combine(new string[] { m_TraceFileDir,
+            if (File.Exists(m_TraceFileDir))
+            {
+                var location = Path.Combine(new string[] { m_TraceFileDir,
                             "library-text-"+Path.GetRandomFileName() + ".txt" });
-            File.WriteAllText(location, m_Library.ToString());
-            Process.Start(location);
+                File.WriteAllText(location, m_Library.ToString());
+                Process.Start(location);
+            }
+            else
+            {
+                System.Windows.Forms.MessageBox.Show("Path " + m_TraceFileDir + " was not found");
+            }
             ToggleMenu(true);
         }
 
