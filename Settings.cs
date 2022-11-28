@@ -17,6 +17,7 @@ namespace RpcInvestigator
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "RpcInvestigator");
         private static string m_DefaultSettingsFileName = "settings.json";
+        private static string m_TraceDir = Path.Combine(m_DefaultPath, "Logs");
         public string m_DbghelpPath;
         public string m_SymbolPath;
         public TraceLevel m_TraceLevel;
@@ -33,6 +34,18 @@ namespace RpcInvestigator
                 {
                     Trace.TraceError("Unable to create settings directory '" +
                         m_DefaultPath + "': " + ex.Message);
+                }
+            }
+            if (!Directory.Exists(m_TraceDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(m_TraceDir);
+                }
+                catch (Exception ex) // swallow
+                {
+                    Trace.TraceError("Unable to create settings directory '" +
+                        m_TraceDir + "': " + ex.Message);
                 }
             }
         }

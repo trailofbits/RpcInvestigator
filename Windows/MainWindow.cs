@@ -12,10 +12,10 @@ namespace RpcInvestigator
     public partial class MainWindow : Form
     {
         private Settings m_Settings;
-        private static readonly string m_WorkingDir = Environment.GetFolderPath(
-            Environment.SpecialFolder.ApplicationData) + "\\RpcInvestigator";
-        private static readonly string m_TraceFileDir = Path.Combine(
-            new string[] { m_WorkingDir, "Logs\\" });
+        private static readonly string m_WorkingDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "RpcInvestigator");
+        private static readonly string m_TraceFileDir = Path.Combine(m_WorkingDir, "Logs");
         private static TraceSwitch trace =
             new TraceSwitch("RPC Investigator", "RPC Investigator tracing");
         private RpcLibrary m_Library;
@@ -170,13 +170,13 @@ namespace RpcInvestigator
 
         private void logsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (File.Exists(m_TraceFileDir))
+            if (Directory.Exists(m_TraceFileDir))
             {
                 Process.Start(m_TraceFileDir);
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show("Log file was not found");
+                MessageBox.Show("Log file was not found");
             }
         }
 
@@ -247,7 +247,7 @@ namespace RpcInvestigator
         private void exportLibraryAsTextToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ToggleMenu(false);
-            if (File.Exists(m_TraceFileDir))
+            if (Directory.Exists(m_TraceFileDir))
             {
                 var location = Path.Combine(new string[] { m_TraceFileDir,
                             "library-text-"+Path.GetRandomFileName() + ".txt" });
@@ -256,7 +256,7 @@ namespace RpcInvestigator
             }
             else
             {
-                System.Windows.Forms.MessageBox.Show("Path " + m_TraceFileDir + " was not found");
+                MessageBox.Show("Path " + m_TraceFileDir + " was not found");
             }
             ToggleMenu(true);
         }
