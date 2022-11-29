@@ -1,8 +1,20 @@
 # RPC Investigator
 
-Intro - TODO
+RPC Investigator (RPCI) is a .NET/C# Windows Forms UI application that provides an advanced discovery and analysis interface to Windows RPC endpoints. The tool provides a visual interface around the existing core RPC capabilities of the [NtApiDotNet](https://github.com/googleprojectzero/sandbox-attacksurface-analysis-tools/tree/main/NtApiDotNet) platform, including:
 
-## Usage
+* Enumerating all active ALPC RPC servers
+* Parsing RPC servers from any PE file
+* Parsing RPC servers from processes and their loaded modules, including services
+* Pulling symbol information from a Symbol Server
+* Exporting RPC server definitions as serialized .NET objects for your own scripting
+
+Beyond these core features, RPCI provides additional capabilities:
+
+* The Client Workbench allows you to create and execute an RPC client binary on-the-fly by right-clicking on an RPC server of interest. The workbench has a C# code editor pane that allows you to edit the client in real time and observe results from RPC procedures executed in your code.
+* Discovered RPC servers are organized into a searchable library, allowing you to pivot RPC server data in useful ways, such as searching all RPC procedures for all servers for interesting routines through a customizable search interface.
+* The RPC Sniffer tool adds visibility into RPC-related ETW data to provide a near real-time view of active RPC calls. By combining ETW data with RPC server data from NtApiDotNet, we can build a more complete picture of ongoing RPC activity.
+
+## Use Case
 
 There are several workflows that the RPC Investigator supports:
 
@@ -12,9 +24,11 @@ There are several workflows that the RPC Investigator supports:
 
 Each of these workflows will eventually lead to an RPC endpoint with multiple RPC procedures. The RPC Investigator can generate C# client code to interact with the endpoint.
 
-### Example Workflow: Service Analysis
+## Example Workflow: Analyzing the Task Scheduler RPC
 
-In this example, we'll be inspecting the Windows Task Scheduler RPC service, which is used to manage and execute scheduled tasks. We'll find the service, generate client code, and then customize the client to interact with one of the exposed procedures. First, load the RPC services list by clicking **File -> Load From Service**. This opens a new service list window:
+In this example, we'll be inspecting the Windows Task Scheduler RPC service, which is used to manage and execute scheduled tasks. We'll find the service, generate client code, and then customize the client to interact with one of the exposed procedures.
+
+First, load the RPC services list by clicking **File -> Load From Service**. This opens a new service list window:
 
 ![](docs/img/ServiceListWindow.png)
 
@@ -84,3 +98,20 @@ The configuration settings can be modified within the application through the **
 2. Download and install the latest [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/). Perform a full installation so that .NET 4.8.1 and Debugging Tools are installed.
 3. Open the Solution and verify that the projects loaded correctly. If there is an error about missing .NET 4.8.1 Targeting Pack, download and install [.NET Framework 4.8.1 Developer Pack](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net481) and then restart Visual Studio.
 
+## Further Reading
+
+Because Windows RPC has been a popular research topic for well over a decade, there are too many related resources and research efforts to name here. We've listed a few below that we encountered while building this tool:
+
+* https://clearbluejar.github.io/posts/surveying-windows-rpc-discovery-tools/
+* https://www.powerofcommunity.net/poc2019/James.pdf
+* https://www.tiraniddo.dev/2022/06/finding-running-rpc-server-information.html 
+* https://clearbluejar.github.io/posts/from-ntobjectmanager-to-petitpotam/ 
+* https://itm4n.github.io/from-rpcview-to-petitpotam/ 
+* https://learn.microsoft.com/en-us/windows/win32/rpc/rpc-security-essentials 
+* https://www.cyberark.com/resources/threat-research-blog/understanding-windows-containers-communication 
+* https://github.com/silverf0x/RpcView
+* https://github.com/xpn/RpcEnum
+* https://github.com/cyberark/RPCMon 
+* https://github.com/tyranid/WindowsRpcClients 
+
+If you're unfamiliar with RPC internals or need a technical refresher, we would recommend one of the authoritative sources on the topic - Alex Ionescu's 2014 SyScan talk in Singapore, [All about the RPC, LRPC, ALPC, and LPC in your PC](https://www.youtube.com/watch?v=UNpL5csYC1E).
