@@ -111,6 +111,19 @@ namespace RpcInvestigator
 
         static private string FindDbghelpDll()
         {
+            // First try to get the dbghelp.dll from the Windows debugging tools.
+            try
+            {
+                FileInfo info = new FileInfo("C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\dbghelp.dll");
+                if (info.Exists && info.Length > 0)
+                {
+                    return info.FullName;
+                }
+            }
+            catch { }
+
+            // If that fails, try to get dbghelp.dll from any of the installed Windows SDKs and prefer the most recent
+            // version of the SDK.
             string baseDir = "C:\\Program Files (x86)\\Windows Kits\\10\\bin";
             List<string> potentialKits = new List<string>();
             foreach (string dirname in Directory.GetDirectories(baseDir))
@@ -136,17 +149,6 @@ namespace RpcInvestigator
                     }
                 } catch { }
             }
-
-            // We haven't found a dbghelp.dll module for any installed kits. Final try is to get
-            // the debugger's version of dbghelp.dll
-            try
-            {
-                FileInfo info = new FileInfo("C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\dbghelp.dll");
-                if (info.Exists && info.Length > 0)
-                {
-                    return info.FullName;
-                }
-            } catch { }
 
             return null;
         }
