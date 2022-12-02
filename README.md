@@ -14,21 +14,23 @@ Beyond these core features, RPCI provides additional capabilities:
 * Discovered RPC servers are organized into a searchable library, allowing you to pivot RPC server data in useful ways, such as searching all RPC procedures for all servers for interesting routines through a customizable search interface.
 * The RPC Sniffer tool adds visibility into RPC-related ETW data to provide a near real-time view of active RPC calls. By combining ETW data with RPC server data from NtApiDotNet, we can build a more complete picture of ongoing RPC activity.
 
-## Use Case
+## Common Workflows
 
 There are several workflows that the RPC Investigator supports:
 
-- **Auditing**: Enumerating all RPC servers from running processes, typically used to survey currently registered and executing RPC handlers.
-- **Service Analysis**: Enumerating all services that provide at least one RPC handler, typically used to analyze an existing RPC service.
-- **Handler Analysis**: Loading all RPC information from an RPC DLL, typically used to analyze a specific RPC service that may not be installed or running.
-
-Each of these workflows will eventually lead to an RPC endpoint with multiple RPC procedures. The RPC Investigator can generate C# client code to interact with the endpoint.
+- **Auditing**
+  - Enumerating all active ALPC RPC servers across all processes that are communicating with an ALPC endpoint
+  - Enumerating all RPC servers running in a Windows service
+  - Loading offline RPC servers defined in a PE file (such as an EXE or DLL)
+- **Interactive**
+  - Client Workbench: Automatically generate RPC client code that can be customized and used to call into any RPC service.
+  - RPC Sniffer: Realtime monitor of RPC-related Event Tracing for Windows (ETW) data.
 
 ## Example Workflow: Analyzing the Task Scheduler RPC
 
 In this example, we'll be inspecting the Windows Task Scheduler RPC service, which is used to manage and execute scheduled tasks. We'll find the service, generate client code, and then customize the client to interact with one of the exposed procedures.
 
-First, load the RPC services list by clicking **File -> Load From Service**. This opens a new service list window:
+First, load the Windows services list by clicking **File -> Load From Service**. This opens a new service list window:
 
 ![](docs/img/ServiceListWindow.png)
 
@@ -36,16 +38,16 @@ Find the **Schedule** service, which is the Windows Task Scheduler, select the s
 
 ![](docs/img/ScheduleService.png)
 
-You will be prompted prior to the investigator loading all associated RPC DLLs. Click **Yes** to continue. Once loaded, you will see a list of RPC handlers. The Windows Task Scheduler RPC service has an Interface ID of [`86D35949-83C9-4044-B424-DB363231FD0C`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tsch/fbab083e-f79f-4216-af4c-d5104a913d40). Find the row within the list that has this Interface ID, which should have a running service named **Task Scheduler**, right-click on the row and select **New Client**.
+You will be prompted prior to RPCI loading all associated RPC DLLs. Click **Yes** to continue. Once loaded, you will see a list of all RPC servers discovered across all modules loaded in the service process. The Windows Task Scheduler RPC server has an Interface ID of [`86D35949-83C9-4044-B424-DB363231FD0C`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tsch/fbab083e-f79f-4216-af4c-d5104a913d40). Find the row within the list that has this Interface ID, which should have a running service named **Task Scheduler**, right-click on the row and select **New Client**.
 
 ![](docs/img/TaskSchedulerClient.png)
 
-The left portion of the client window shows RPC handler metadata and command line output from the client code. The right side shows two tabs:
+The left portion of the client window shows RPC server metadata and command line output from the client code. The right side shows two tabs:
 
 - **Client Code** - Auto generated C# client code that can be customized to interact with one or more procedures. 
 - **Procedures** - List of exposed RPC procedures.
 
-In this example we'll be calling the [`SchRpcHighestVersion`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tsch/b266c231-52db-4244-88da-725cf2a9557a) procedure. This method accepts a single argument, `out int version`, which, after calling the procedure, will contain the highest Task Scheduler protocol version supported by the RPC, the high 16-bits are the major version and the low 16-bits are the minor version.
+In this example we'll be calling the [`SchRpcHighestVersion`](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-tsch/b266c231-52db-4244-88da-725cf2a9557a) procedure. This method accepts a single argument, `out int version`, which, after calling the procedure, will contain the highest Task Scheduler protocol version supported by the RPC interface. The high 16-bits are the major version and the low 16-bits are the minor version.
 
 To call this procedure:
 
@@ -61,16 +63,16 @@ To call this procedure:
            long minor = version & 0x0000ffff;
            Console.WriteLine("highest supported RPC version: {0}.{1}", major, minor);
        } else {
-           Console.WriteLine("call to SchRpcHighestVersion failed with error: {0}", status);
+           Console.WriteLine("call to SchRpcHighestVersion failed with error: {0:X}", status);
        }
        return true;
    }
    ```
 
 3. After adding this code, run the client by clicking the **Run** button. This will compile the C# code and then execute the **`Run`** method.
-   - You will see a popup box with any compliation errors if the client code could not be compiled.
+   - You will see a popup box with any compilation errors if the client code could not be compiled.
 
-If compliation is successful, you will see something similar to the following in the **Output** box:
+If compilation is successful, you will see something similar to the following in the **Output** box:
 
 ```
 > Run() output:
