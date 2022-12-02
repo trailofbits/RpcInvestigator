@@ -47,9 +47,24 @@ namespace RpcInvestigator
                 }
             }
 
+            if (!Directory.Exists(m_LogDir))
+            {
+                try
+                {
+                    Directory.CreateDirectory(m_LogDir);
+                }
+                catch (Exception ex) // swallow
+                {
+                    Trace(TraceLoggerType.Settings,
+                        TraceEventType.Warning,
+                        "Unable to create log directory '" +
+                        m_LogDir + "': " + ex.Message);
+                }
+            }
+
             m_SymbolPath = @"srv*c:\\symbols*https://msdl.microsoft.com/download/symbols";
             m_DbghelpPath = FindDbghelpDll();
-            m_TraceLevel = TraceLevel.Info;
+            m_TraceLevel = SourceLevels.Information;
         }
 
         public static void Validate (Settings Object)
