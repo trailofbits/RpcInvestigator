@@ -16,9 +16,6 @@ using System.Text;
 using System.Threading.Tasks;
 using NtApiDotNet.Win32;
 using NtApiDotNet;
-using System.Net;
-using GraphX.Common;
-using System.Windows;
 
 namespace RpcInvestigator
 {
