@@ -16,8 +16,6 @@ using AceFlags = NtApiDotNet.AceFlags;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using RpcInvestigator.Windows;
-using System.Windows.Forms;
-using System.Security.Cryptography;
 
 namespace RpcInvestigator.Util
 {
@@ -25,7 +23,7 @@ namespace RpcInvestigator.Util
 
     public static class SddlParser
     {
-        private static string SidToString(SecurityIdentifier SidValue)
+        public static string SidToString(SecurityIdentifier SidValue)
         {
             try
             {
@@ -37,7 +35,7 @@ namespace RpcInvestigator.Util
             }
         }
 
-        private static Ace GetAce(GenericAce ace)
+        public static Ace GetAce(GenericAce ace)
         {
             var aceData = new byte[ace.BinaryLength];
             IntPtr acePointer = Marshal.AllocHGlobal(ace.BinaryLength);
@@ -111,28 +109,6 @@ namespace RpcInvestigator.Util
             return result.ToString();
         }
 
-        private static void AddAclDataToSdView(
-            SecurityDescriptorView SdView,
-            RawAcl Acl
-        )
-        {
-            if (Acl == null)
-            {
-                return;
-            }
-            foreach (var ace in Acl)
-            {
-                var ntAce = GetAce(ace);
-                if (ntAce != null)
-                {
-                    SdView.AddRow(ntAce.Sid.ToString() + " (" + ntAce.Sid.Name + ")",
-                                  String.Format("0x{0:X}", ntAce.Mask),
-                                  ntAce.Type.ToString(),
-                                  ntAce.Flags.ToString());
-                }
-            }
-        }
-
         public static string Parse(string SddlString)
         {
             StringBuilder result = new StringBuilder();
@@ -157,27 +133,6 @@ namespace RpcInvestigator.Util
             result.Append(AclToString(descriptor.SystemAcl));
             result.AppendLine();
             return result.ToString();
-        }
-
-        public static void BuildSdView(
-            SecurityDescriptorView SdView,
-            string SddlString
-        )
-        {
-            RawSecurityDescriptor descriptor;
-            try
-            {
-                descriptor = new RawSecurityDescriptor(SddlString);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Unable to create RawSecurityDescriptor from " +
-                    "the provided SDDL string '" + SddlString + "':  " + ex.Message);
-            }
-
-            SdView.AddOwner(SidToString(descriptor.Owner));
-            SdView.AddGroup(SidToString(descriptor.Group));
-            AddAclDataToSdView(SdView, descriptor.DiscretionaryAcl);
         }
     }
 

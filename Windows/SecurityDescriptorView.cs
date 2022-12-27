@@ -1,22 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BrightIdeasSoftware;
+using RpcInvestigator.Util;
+using System;
+using System.Security.AccessControl;
 using System.Windows.Forms;
+using NtApiDotNet;
 
 namespace RpcInvestigator.Windows
 {
     public partial class SecurityDescriptorView : Form
     {
-        private DataGridView dataGridView1;
         private RichTextBox richTextBox1;
-        private DataGridViewTextBoxColumn Sid;
-        private DataGridViewTextBoxColumn Mask;
-        private DataGridViewTextBoxColumn Type;
-        private DataGridViewTextBoxColumn Flags;
         private CheckedListBox checkedListBox1;
+        private FastObjectListView fastObjectListView1;
+        private OLVColumn olvColumn1;
+        private OLVColumn olvColumn2;
+        private OLVColumn olvColumn3;
+        private OLVColumn olvColumn4;
         private Button button1;
 
         public SecurityDescriptorView(
@@ -25,15 +24,18 @@ namespace RpcInvestigator.Windows
         {
             InitializeComponent();
         }
-        
+
         public void AddRow(
-            string Sid,
-            string Mask,
-            string Type,
-            string Flags
+            Ace ace
         )
         {
-            this.dataGridView1.Rows.Add(Sid, Mask, Type, Flags);
+            AceView aceView = new AceView();
+            aceView.Flags = ace.Flags;
+            aceView.Type = ace.Type;
+            aceView.Mask = ace.Mask;
+            aceView.Sid = ace.Sid.ToString() + " (" + ace.Sid.Name + ")";
+
+            fastObjectListView1.AddObject(aceView);
         }
 
         public void AddOwner(
@@ -52,14 +54,14 @@ namespace RpcInvestigator.Windows
         private void InitializeComponent()
         {
             this.button1 = new System.Windows.Forms.Button();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Sid = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Mask = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Type = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Flags = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.fastObjectListView1 = new BrightIdeasSoftware.FastObjectListView();
+            this.olvColumn1 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn3 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.olvColumn4 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).BeginInit();
             this.SuspendLayout();
             // 
             // button1
@@ -73,60 +75,9 @@ namespace RpcInvestigator.Windows
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
-            // dataGridView1
-            // 
-            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Sid,
-            this.Mask,
-            this.Type,
-            this.Flags});
-            this.dataGridView1.Location = new System.Drawing.Point(12, 12);
-            this.dataGridView1.Name = "dataGridView1";
-            this.dataGridView1.RowHeadersWidth = 102;
-            this.dataGridView1.Size = new System.Drawing.Size(602, 140);
-            this.dataGridView1.TabIndex = 1;
-            this.dataGridView1.CellClick += DataGridView1_CellClick;
-            this.dataGridView1.CellEnter += DataGridView1_CellClick;
-            // 
-            // Sid
-            // 
-            this.Sid.HeaderText = "Sid";
-            this.Sid.MinimumWidth = 12;
-            this.Sid.Name = "Sid";
-            this.Sid.ReadOnly = true;
-            this.Sid.Width = 250;
-            // 
-            // Mask
-            // 
-            this.Mask.HeaderText = "Mask";
-            this.Mask.MinimumWidth = 12;
-            this.Mask.Name = "Mask";
-            this.Mask.ReadOnly = true;
-            this.Mask.Width = 50;
-            // 
-            // Type
-            // 
-            this.Type.HeaderText = "Type";
-            this.Type.MinimumWidth = 12;
-            this.Type.Name = "Type";
-            this.Type.ReadOnly = true;
-            this.Type.Width = 70;
-            // 
-            // Flags
-            // 
-            this.Flags.HeaderText = "Flags";
-            this.Flags.MinimumWidth = 12;
-            this.Flags.Name = "Flags";
-            this.Flags.ReadOnly = true;
-            this.Flags.Width = 50;
-            // 
             // richTextBox1
             // 
-            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+            this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBox1.Location = new System.Drawing.Point(12, 158);
             this.richTextBox1.Name = "richTextBox1";
@@ -137,8 +88,7 @@ namespace RpcInvestigator.Windows
             // 
             // checkedListBox1
             // 
-            this.checkedListBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkedListBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.checkedListBox1.FormattingEnabled = true;
             this.checkedListBox1.Items.AddRange(new object[] {
             "Connect",
@@ -150,84 +100,157 @@ namespace RpcInvestigator.Windows
             this.checkedListBox1.Location = new System.Drawing.Point(322, 158);
             this.checkedListBox1.Name = "checkedListBox1";
             this.checkedListBox1.SelectionMode = System.Windows.Forms.SelectionMode.None;
-            this.checkedListBox1.Size = new System.Drawing.Size(292, 100);
+            this.checkedListBox1.Size = new System.Drawing.Size(292, 89);
             this.checkedListBox1.TabIndex = 3;
+            // 
+            // fastObjectListView1
+            // 
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn1);
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn2);
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn3);
+            this.fastObjectListView1.AllColumns.Add(this.olvColumn4);
+            this.fastObjectListView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.fastObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.olvColumn1,
+            this.olvColumn2,
+            this.olvColumn3,
+            this.olvColumn4});
+            this.fastObjectListView1.HideSelection = false;
+            this.fastObjectListView1.Location = new System.Drawing.Point(12, 12);
+            this.fastObjectListView1.Name = "fastObjectListView1";
+            this.fastObjectListView1.ShowGroups = false;
+            this.fastObjectListView1.Size = new System.Drawing.Size(602, 140);
+            this.fastObjectListView1.TabIndex = 4;
+            this.fastObjectListView1.UseCompatibleStateImageBehavior = false;
+            this.fastObjectListView1.View = System.Windows.Forms.View.Details;
+            this.fastObjectListView1.VirtualMode = true;
+            this.fastObjectListView1.SelectedIndexChanged += FastObjectListView1_SelectedIndexChanged;
+            // 
+            // olvColumn1
+            // 
+            this.olvColumn1.AspectName = "Sid";
+            this.olvColumn1.IsEditable = false;
+            this.olvColumn1.Text = "Sid";
+            this.olvColumn1.Width = 250;
+            // 
+            // olvColumn2
+            // 
+            this.olvColumn2.AspectName = "Mask";
+            this.olvColumn2.IsEditable = false;
+            this.olvColumn2.Text = "Mask";
+            this.olvColumn2.Width = 50;
+            // 
+            // olvColumn3
+            // 
+            this.olvColumn3.AspectName = "Type";
+            this.olvColumn3.IsEditable = false;
+            this.olvColumn3.Text = "Type";
+            this.olvColumn3.Width = 70;
+            // 
+            // olvColumn4
+            // 
+            this.olvColumn4.AspectName = "Flags";
+            this.olvColumn4.IsEditable = false;
+            this.olvColumn4.Text = "Flags";
+            this.olvColumn4.Width = 50;
             // 
             // SecurityDescriptorView
             // 
             this.ClientSize = new System.Drawing.Size(626, 300);
+            this.Controls.Add(this.fastObjectListView1);
             this.Controls.Add(this.checkedListBox1);
             this.Controls.Add(this.richTextBox1);
-            this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button1);
             this.Name = "SecurityDescriptorView";
             this.Text = "Security Descriptor";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SecurityDescriptorView_FormClosing);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.fastObjectListView1)).EndInit();
             this.ResumeLayout(false);
 
         }
 
-        private void DataGridView1_CellEnter(object sender, DataGridViewCellEventArgs e)
+        private void FastObjectListView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            throw new NotImplementedException();
+            FastObjectListView view = (FastObjectListView)sender;
+            if (view.SelectedIndex < 0)
+            {
+                return;
+            }
+            var row = this.fastObjectListView1.Items[view.SelectedIndex];
+            var mask = Convert.ToInt32(row.SubItems[1].Text.ToString(), 16);
+
+            foreach (int i in this.checkedListBox1.CheckedIndices)
+            {
+                this.checkedListBox1.SetItemCheckState(i, CheckState.Unchecked);
+            }
+            if ((mask & 1) == 1)
+            {
+                this.checkedListBox1.SetItemCheckState(0, CheckState.Checked);
+            }
+            if ((mask & 0x10000) == 0x10000)
+            {
+                this.checkedListBox1.SetItemCheckState(1, CheckState.Checked);
+            }
+            if ((mask & 0x20000) == 0x20000)
+            {
+                this.checkedListBox1.SetItemCheckState(2, CheckState.Checked);
+            }
+            if ((mask & 0x40000) == 0x40000)
+            {
+                this.checkedListBox1.SetItemCheckState(3, CheckState.Checked);
+            }
+            if ((mask & 0x80000) == 0x80000)
+            {
+                this.checkedListBox1.SetItemCheckState(4, CheckState.Checked);
+            }
+            if ((mask & 0x100000) == 0x100000)
+            {
+                this.checkedListBox1.SetItemCheckState(5, CheckState.Checked);
+            }
         }
 
-        private void SecurityDescriptorView_FormClosing(object sender, EventArgs e)
+        public void BuildSdView(
+            string SddlString
+        )
         {
-            //Close();
+            RawSecurityDescriptor descriptor;
+            try
+            {
+                descriptor = new RawSecurityDescriptor(SddlString);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unable to create RawSecurityDescriptor from " +
+                    "the provided SDDL string '" + SddlString + "':  " + ex.Message);
+            }
+
+            AddOwner(SddlParser.SidToString(descriptor.Owner));
+            AddGroup(SddlParser.SidToString(descriptor.Group));
+            if (descriptor.DiscretionaryAcl == null)
+            {
+                return;
+            }
+            foreach (var ace in descriptor.DiscretionaryAcl)
+            {
+                var ntAce = SddlParser.GetAce(ace);
+                if (ntAce != null)
+                {
+                    AddRow(ntAce);
+                }
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             this.Close();
         }
-
-        private void DataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            foreach (int i in this.checkedListBox1.CheckedIndices)
-            {
-                this.checkedListBox1.SetItemCheckState(i, CheckState.Unchecked);
-            }
-            int rowIndex = e.RowIndex;
-            DataGridViewRow row = dataGridView1.Rows[rowIndex];
-            foreach (DataGridViewCell cell in row.Cells)
-            {  
-                if (cell.OwningColumn.Name == "Mask")
-                {
-                    if (cell.Value == null)
-                    {
-                        break;
-                    }
-                    var mask = Convert.ToInt32(cell.Value.ToString(), 16);
-                    if ((mask & 1) == 1)
-                    {
-                        this.checkedListBox1.SetItemCheckState(0, CheckState.Checked);
-                    }
-                    if ((mask & 0x10000) == 0x10000)
-                    {
-                        this.checkedListBox1.SetItemCheckState(1, CheckState.Checked);
-                    }
-                    if ((mask & 0x20000) == 0x20000)
-                    {
-                        this.checkedListBox1.SetItemCheckState(2, CheckState.Checked);
-                    }
-                    if ((mask & 0x40000) == 0x40000)
-                    {
-                        this.checkedListBox1.SetItemCheckState(3, CheckState.Checked);
-                    }
-                    if ((mask & 0x80000) == 0x80000)
-                    {
-                        this.checkedListBox1.SetItemCheckState(4, CheckState.Checked);
-                    }
-                    if ((mask & 0x100000) == 0x100000)
-                    {
-                        this.checkedListBox1.SetItemCheckState(1, CheckState.Checked);
-                    }
-                    break;
-                }
-            }
-        }
-
+    }
+    class AceView
+    {
+        public NtApiDotNet.AceType Type { get; set; }
+        public NtApiDotNet.AceFlags Flags { get; set; }
+        public AccessMask Mask { get; set; }
+        public string Sid { get; set; }
     }
 }

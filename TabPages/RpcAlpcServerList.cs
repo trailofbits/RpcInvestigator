@@ -199,7 +199,7 @@ namespace RpcInvestigator
         {
             TabPages.ContextMenu.BuildRightClickMenu(Args, new List<ToolStripMenuItem>{
                 new ToolStripMenuItem("Open in Library", null, ContextMenuOpenAlpcServerInLibrary),
-                new ToolStripMenuItem("View Security Descriptor", null, ContextMenuViewSecurityDescriptor),
+                new ToolStripMenuItem("View Security Descriptor", null, TabPages.ContextMenu.ContextMenuViewSecurityDescriptor),
             });
         }
 
@@ -230,28 +230,6 @@ namespace RpcInvestigator
                 Keyword = alpcServer.Name
             };
             _ = await m_TabManager.LoadRpcLibraryServersTab(filter);
-        }
-
-        private
-        void
-        ContextMenuViewSecurityDescriptor(
-            object Sender,
-            EventArgs Args
-            )
-        {
-            object tag = ((ToolStripMenuItem)Sender).Tag;
-            if (tag == null)
-            {
-                return;
-            }
-            var args = (CellRightClickEventArgs)tag;
-            var model = args.Model as RpcAlpcServer;
-            var sd = model.SecurityDescriptor;
-
-            var sdView = new SecurityDescriptorView();
-
-            SddlParser.BuildSdView(sdView, sd.ToString());
-            sdView.Show();
         }
     }
 }
