@@ -20,6 +20,8 @@ using System.Security.AccessControl;
 using Newtonsoft.Json.Linq;
 using RpcInvestigator.Util;
 using System.ServiceModel.Channels;
+using System.Text;
+using RpcInvestigator.Windows;
 
 namespace RpcInvestigator
 {
@@ -68,14 +70,7 @@ namespace RpcInvestigator
             {
                 if (col.Name == "SecurityDescriptor")
                 {
-                    col.AspectToStringConverter = delegate (object Item)
-                    {
-                        if (Item == null)
-                        {
-                            return "";
-                        }
-                        return SddlParser.Parse(Item.ToString());
-                    };
+                    col.IsVisible = false;
                 }
             });
 
@@ -204,6 +199,7 @@ namespace RpcInvestigator
         {
             TabPages.ContextMenu.BuildRightClickMenu(Args, new List<ToolStripMenuItem>{
                 new ToolStripMenuItem("Open in Library", null, ContextMenuOpenAlpcServerInLibrary),
+                new ToolStripMenuItem("View Security Descriptor", null, TabPages.ContextMenu.ContextMenuViewSecurityDescriptor),
             });
         }
 

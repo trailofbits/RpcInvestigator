@@ -6,6 +6,9 @@
 // the LICENSE file found in the root directory of this source tree.
 //
 using BrightIdeasSoftware;
+using NtApiDotNet.Win32;
+using RpcInvestigator.Util;
+using RpcInvestigator.Windows;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -166,6 +169,28 @@ namespace RpcInvestigator.TabPages
                 a.Handled = true;
             });
             Args.MenuStrip.Items.Add(textbox);
+        }
+
+        public
+        static
+        void
+        ContextMenuViewSecurityDescriptor(
+            object Sender,
+            EventArgs Args
+            )
+        {
+            object tag = ((ToolStripMenuItem)Sender).Tag;
+            if (tag == null)
+            {
+                return;
+            }
+            var args = (CellRightClickEventArgs)tag;
+            var model = args.Model as RpcAlpcServer;
+            var sd = model.SecurityDescriptor;
+
+            var sdView = new SecurityDescriptorView();
+            sdView.BuildSdView(sd.ToString());
+            sdView.Show();
         }
     }
 }

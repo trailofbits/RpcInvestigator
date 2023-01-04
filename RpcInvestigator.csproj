@@ -209,6 +209,9 @@
     <Compile Include="TabPages\RpcServerList.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Windows\SecurityDescriptorView.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Windows\Services.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -249,6 +252,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="Windows\SecurityDescriptorView.resx">
+      <DependentUpon>SecurityDescriptorView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Windows\Services.resx">
       <DependentUpon>Services.cs</DependentUpon>
     </EmbeddedResource>
