@@ -1,5 +1,7 @@
 # RPC Investigator
 
+Please read our [blog post announcement](https://blog.trailofbits.com/2023/01/17/rpc-investigator-microsoft-windows-remote-procedure-call/).
+
 RPC Investigator (RPCI) is a .NET/C# Windows Forms UI application that provides an advanced discovery and analysis interface to Windows RPC endpoints. The tool provides a visual interface around the existing core RPC capabilities of the [NtApiDotNet](https://github.com/googleprojectzero/sandbox-attacksurface-analysis-tools/tree/main/NtApiDotNet) platform, including:
 
 * Enumerating all active ALPC RPC servers
