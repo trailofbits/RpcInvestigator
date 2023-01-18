@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using NtApiDotNet;
+using NtApiDotNet.Win32;
 using System.Diagnostics;
 using System.Linq;
 
@@ -65,45 +65,77 @@ namespace RpcInvestigator
             ToolStripStatusLabel ProgressLabel
             )
         {
-            Text = "Procedures";
-            Name = "Procedures";
+            var tabName = "Procedures";
+            if (Filter.FilterType != RpcLibraryFilterType.NoFilter)
+            {
+                tabName += " for '" + Filter.Keyword + "'";
+            }
+            Text = tabName;
+            Name = tabName;
             ImageIndex = 3;
             try
             {
-                using (NtToken token = NtProcess.Current.OpenToken())
+                var searchResults = new List<RpcLibraryProcedure>();
+                ProgressBar.Step = 1;
+                ProgressBar.Value = 0;
+                ProgressBar.Visible = true;
+                await Task.Run(() =>
                 {
-                    var searchResults = new List<RpcLibraryProcedure>();
-                    ProgressBar.Step = 1;
-                    ProgressBar.Value = 0;
-                    ProgressBar.Visible = true;
-                    await Task.Run(() =>
+                    var results = m_Library.Find(Filter);
+                    foreach (var server in results)
                     {
-                        var results = m_Library.Find(Filter);
-                        foreach (var server in results)
+                        foreach (var procedure in server.Procedures)
                         {
-                            foreach (var procedure in server.Procedures)
+                            var formatter = DefaultNdrFormatter.Create(DefaultNdrFormatterFlags.RemoveComments);
+                            string friendly = formatter.FormatProcedure(procedure);
+                            searchResults.Add(new RpcLibraryProcedure()
                             {
-                                var formatter = DefaultNdrFormatter.Create(DefaultNdrFormatterFlags.RemoveComments);
-                                string friendly = formatter.FormatProcedure(procedure);
-                                searchResults.Add(new RpcLibraryProcedure()
-                                {
-                                    FilePath = server.FilePath,
-                                    InterfaceId = server.InterfaceId,
-                                    InterfaceVersion = server.InterfaceVersion,
-                                    Name = friendly,
-                                });
-                            };
-                        }
-                    });
-
-                    if (searchResults.Count > 0)
-                    {
-                        m_Listview.SetObjects(searchResults);
-                        m_Listview.AutoResizeColumns();
-                        m_Listview.RebuildColumns();
+                                FilePath = server.FilePath,
+                                InterfaceId = server.InterfaceId,
+                                InterfaceVersion = server.InterfaceVersion,
+                                Name = friendly,
+                            });
+                        };
                     }
-                    ProgressBar.Value = 0;
-                    ProgressBar.Visible = false;
+                });
+
+                if (searchResults.Count > 0)
+                {
+                    m_Listview.SetObjects(searchResults);
+                    m_Listview.AutoResizeColumns();
+                    m_Listview.RebuildColumns();
+                }
+                ProgressBar.Value = 0;
+                ProgressBar.Visible = false;
+            }
+            catch (Exception ex)
+            {
+                Trace(TraceLoggerType.RpcLibraryProcedureList,
+                    TraceEventType.Error,
+                    "Unable to retrieve RPC library procedure list: " + ex.Message);
+            }
+            return true;
+        }
+
+        public bool Build(RpcServer Server)
+        {
+            Text = "Procedures";
+            Name = "Procedures";
+            ImageIndex = 3;
+            var procs = new List<RpcLibraryProcedure>();
+            try
+            {
+                foreach (var procedure in Server.Procedures)
+                {
+                    var formatter = DefaultNdrFormatter.Create(DefaultNdrFormatterFlags.RemoveComments);
+                    string friendly = formatter.FormatProcedure(procedure);
+                    procs.Add(new RpcLibraryProcedure()
+                    {
+                        FilePath = Server.FilePath,
+                        InterfaceId = Server.InterfaceId,
+                        InterfaceVersion = Server.InterfaceVersion,
+                        Name = friendly,
+                    });
                 }
             }
             catch (Exception ex)
@@ -111,6 +143,12 @@ namespace RpcInvestigator
                 Trace(TraceLoggerType.RpcLibraryProcedureList,
                     TraceEventType.Error,
                     "Unable to retrieve RPC library procedure list: " + ex.Message);
+            }
+            if (procs.Count > 0)
+            {
+                m_Listview.SetObjects(procs);
+                m_Listview.AutoResizeColumns();
+                m_Listview.RebuildColumns();
             }
             return true;
         }

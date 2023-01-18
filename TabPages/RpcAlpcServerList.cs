@@ -15,13 +15,6 @@ using BrightIdeasSoftware;
 using System.Drawing;
 using System.Diagnostics;
 using RpcInvestigator.TabPages;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using Newtonsoft.Json.Linq;
-using RpcInvestigator.Util;
-using System.ServiceModel.Channels;
-using System.Text;
-using RpcInvestigator.Windows;
 
 namespace RpcInvestigator
 {
@@ -55,24 +48,34 @@ namespace RpcInvestigator
             m_Listview.View = View.Details;
             m_Listview.VirtualMode = true;
             m_Listview.ShowGroups = false;
+            m_Listview.UseFiltering = true;
             m_Listview.Alignment = ListViewAlignment.Left;
             Generator.GenerateColumns(m_Listview, typeof(RpcAlpcServer), true);
             foreach (var column in m_Listview.AllColumns)
             {
-                if (column.Name.ToLower() == "endpoints")
+                if (column.Name.ToLower() == "endpoints" ||
+                    column.Name.ToLower() == "securitydescriptor")
                 {
                     column.IsVisible = false;
                 }
+                if (column.Name.ToLower() == "securitydescriptor")
+                {
+                    column.AspectGetter = delegate (object Row)
+                    {
+                        if (Row == null)
+                        {
+                            return "";
+                        }
+                        var server = Row as RpcAlpcServer;
+                        if (server.SecurityDescriptor == null)
+                        {
+                            return "";
+                        }
+                        return server.SecurityDescriptor.ToString();
+                    };
+                }
                 column.MaximumWidth = -1;
             }
-
-            m_Listview.AllColumns.ForEach(col =>
-            {
-                if (col.Name == "SecurityDescriptor")
-                {
-                    col.IsVisible = false;
-                }
-            });
 
             //
             // When a listview row is double-clicked, a new tab will open with endpoints
@@ -90,7 +93,34 @@ namespace RpcInvestigator
                     selectedRow.Name, selectedRow.Endpoints.ToList(), selectedRow.Name);
             });
             m_Listview.CellRightClick += RightClickHandler;
+            m_Listview.ColumnRightClick += ColumnRightClickOverride;
             Controls.Add(m_Listview);
+        }
+
+        private void ColumnRightClickOverride(object sender, ColumnClickEventArgs e)
+        {
+            //
+            // Some of the columns we hide by default should never be shown,
+            // either because they contain binary data or lists of binary data.
+            // Such information is not easy to disable in the listview, so we'll
+            // strip those columns from the column selector context menu.
+            //
+            var args = (ColumnRightClickEventArgs)e;
+            var list = new List<ToolStripItem>();
+            foreach (var item in args.MenuStrip.Items)
+            {
+                if (item.GetType() == typeof(ToolStripMenuItem))
+                {
+                    var toolstripItem = item as ToolStripMenuItem;
+                    if (toolstripItem.Text.ToLower() == "endpoints")
+                    {
+                        continue;
+                    }
+                }
+                list.Add((ToolStripItem)item);
+            }
+            args.MenuStrip.Items.Clear();
+            args.MenuStrip.Items.AddRange(list.ToArray());
         }
 
         public int GetCount()
@@ -200,7 +230,22 @@ namespace RpcInvestigator
             TabPages.ContextMenu.BuildRightClickMenu(Args, new List<ToolStripMenuItem>{
                 new ToolStripMenuItem("Open in Library", null, ContextMenuOpenAlpcServerInLibrary),
                 new ToolStripMenuItem("View Security Descriptor", null, TabPages.ContextMenu.ContextMenuViewSecurityDescriptor),
+                new ToolStripMenuItem("View Procedures", null, ContextMenuViewProcedures),
             });
+        }
+
+        private void ContextMenuViewProcedures(object Sender, EventArgs Args)
+        {
+            object tag = ((ToolStripMenuItem)Sender).Tag;
+            if (tag == null)
+            {
+                return;
+            }
+            var args = (CellRightClickEventArgs)tag;
+            var server = args.Model as RpcAlpcServer;
+            _ = m_TabManager.LoadRpcLibraryProceduresTab(new RpcLibraryFilter{
+                FilterType = RpcLibraryFilterType.FilterByKeyword,
+                Keyword = server.Name });
         }
 
         private

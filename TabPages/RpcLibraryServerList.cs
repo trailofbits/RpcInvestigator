@@ -86,7 +86,37 @@ namespace RpcInvestigator
                 }
                 column.MaximumWidth = -1;
             }
+            m_Listview.ColumnRightClick += ColumnRightClickOverride;
             Controls.Add(m_Listview);
+        }
+
+        private void ColumnRightClickOverride(object sender, ColumnClickEventArgs e)
+        {
+            //
+            // Some of the columns we hide by default should never be shown,
+            // either because they contain binary data or lists of binary data.
+            // Such information is not easy to disable in the listview, so we'll
+            // strip those columns from the column selector context menu.
+            //
+            var args = (ColumnRightClickEventArgs)e;
+            var list = new List<ToolStripItem>();
+            foreach (var item in args.MenuStrip.Items)
+            {
+                if (item.GetType() == typeof(ToolStripMenuItem))
+                {
+                    var toolstripItem = item as ToolStripMenuItem;
+                    if (toolstripItem.Text.ToLower() == "procedures" ||
+                        toolstripItem.Text.ToLower() == "server" ||
+                        toolstripItem.Text.ToLower() == "complextypes" ||
+                        toolstripItem.Text.ToLower() == "endpoints")
+                    {
+                        continue;
+                    }
+                }
+                list.Add((ToolStripItem)item);
+            }
+            args.MenuStrip.Items.Clear();
+            args.MenuStrip.Items.AddRange(list.ToArray());
         }
 
         public void ScrollToServer(Guid InterfaceId)
@@ -168,7 +198,8 @@ namespace RpcInvestigator
         {
             TabPages.ContextMenu.BuildRightClickMenu(Args, new List<ToolStripMenuItem>{
                 new ToolStripMenuItem("New Client", null, ContextMenuNewClient),
-                new ToolStripMenuItem("Reset", null, ContextMenuResetSearch)
+                new ToolStripMenuItem("Reset", null, ContextMenuResetSearch),
+                new ToolStripMenuItem("View Procedures", null, ContextMenuViewProcedures)
             });
             TabPages.ContextMenu.AddSearchElements(Args);
         }
@@ -176,6 +207,18 @@ namespace RpcInvestigator
         private void ContextMenuResetSearch(object Sender, EventArgs Args)
         {
             m_Listview.ModelFilter = null;
+        }
+
+        private void ContextMenuViewProcedures(object Sender, EventArgs Args)
+        {
+            object tag = ((ToolStripMenuItem)Sender).Tag;
+            if (tag == null)
+            {
+                return;
+            }
+            var args = (CellRightClickEventArgs)tag;
+            var server = args.Model as RpcServer;
+            _ = m_Manager.LoadRpcLibraryProceduresTab(server);
         }
 
         private void ContextMenuNewClient(object Sender, EventArgs Args)
