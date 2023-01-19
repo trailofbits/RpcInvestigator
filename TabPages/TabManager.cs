@@ -134,6 +134,38 @@ namespace RpcInvestigator.TabPages
             return libraryProceduresTab;
         }
 
+        public RpcLibraryProcedureList LoadRpcLibraryProceduresTab(RpcServer Server)
+        {
+            TabPage tab;
+            RpcLibraryProcedureList libraryProceduresTab;
+            var tabName = "Procedures for ";
+            if (!string.IsNullOrEmpty(Server.ServiceName))
+            {
+                tabName += Server.ServiceName;
+            }
+            else if (!string.IsNullOrEmpty(Server.Name))
+            {
+                tabName += Server.Name;
+            }
+            else
+            {
+                tabName += Server.InterfaceId.ToString();
+            }
+
+            if (!TabExists(tabName, out tab))
+            {
+                tab = new RpcLibraryProcedureList(m_Library);
+                tab.Text = tabName; // override name
+                m_TabControl.TabPages.Add(tab);
+            }
+            libraryProceduresTab = tab as RpcLibraryProcedureList;
+            _ = libraryProceduresTab.Build(Server);
+            m_TabControl.SelectedTab = libraryProceduresTab;
+            m_StatusLabel.Text = "Loaded " + libraryProceduresTab.GetCount() +
+                " procedures from the library";
+            return libraryProceduresTab;
+        }
+
         public bool TabExists(string Name, out TabPage Match)
         {
             Match = null;

@@ -53,6 +53,7 @@ namespace RpcInvestigator.Windows.Controls
             AlternateRowBackColor = Color.LightBlue;
             UseCompatibleStateImageBehavior = false;
             VirtualMode = true;
+            UseFiltering = true;
             if (m_Settings.m_SnifferColumns.Count() == 0)
             {
                 m_ChosenColumns = new List<string>() {
