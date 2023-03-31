@@ -96,6 +96,14 @@ The Rpc Investigator has several configuration settings.
 
 The configuration settings can be modified within the application through the **Edit -> Settings** menu.
 
+## Troubleshooting
+
+After its initial release, RPC Investigator was converted from a .NET Framework application to a .NET 7 application. If you run into build issues, make sure Visual Studio is up-to-date. Wiping all build output folders prior to building from the .NET Framework version is a good idea.
+
+Also, due to the move from the insecure BinaryFormatter class to protobuf-net, RPC libraries generated with the .NET framework version are incompatible with the .NET version.
+
+If you're experiencing random crashes in RPC Investigator, you might find a solution in asking your administrator to tweak your EDR. We have found that some EDRs do not behave sanely with JIT'ed languages.
+
 ## Development Environment
 
 1. Install [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/), make sure to select the **.NET Desktop Development** workflow.

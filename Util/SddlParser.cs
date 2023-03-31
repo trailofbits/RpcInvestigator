@@ -15,7 +15,6 @@ using AceType = NtApiDotNet.AceType;
 using AceFlags = NtApiDotNet.AceFlags;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
-using RpcInvestigator.Windows;
 
 namespace RpcInvestigator.Util
 {
@@ -100,8 +99,8 @@ namespace RpcInvestigator.Util
                     {
                         result.Append("Type: " + ntAce.Type.ToString() + ", ");
                     }
-                    result.Append("Sid: " + ntAce.Sid.ToString() + 
-                                  " (" + ntAce.Sid.Name + ")" + 
+                    result.Append("Sid: " + ntAce.Sid.ToString() +
+                                  " (" + ntAce.Sid.Name + ")" +
                                   ", Mask: " + String.Format("0x{0:X}", ntAce.Mask));
                     result.AppendLine();
                 }

@@ -29,13 +29,13 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task SaveLibrary()
+        public void SaveLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             Assert.IsTrue(env.m_Library.GetServerCount() > 0);
             try
             {
@@ -48,7 +48,7 @@ namespace UnitTests
         }
 
         [TestMethod]
-        public async Task BuildLibrary()
+        public void BuildLibrary()
         {
             //
             // This unit test covers building the library as well as adding
@@ -57,32 +57,32 @@ namespace UnitTests
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             Assert.IsTrue(env.m_Library.GetServerCount() > 0);
         }
 
         [TestMethod]
-        public async Task ClearLibrary()
+        public void ClearLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             Assert.IsTrue(env.m_Library.GetServerCount() > 0);
             env.m_Library.Clear();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
         }
 
         [DataTestMethod]
-        public async Task GetSingleServerFromLibrary()
+        public void GetSingleServerFromLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random server and get it from the library.
             //
@@ -95,13 +95,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task GetMultipleServersFromLibrary()
+        public void GetMultipleServersFromLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random server with multiple versions and get them from the library.
             //
@@ -113,13 +113,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task RemoveSingleServerFromLibrary()
+        public void RemoveSingleServerFromLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random server and remove it from the library.
             //
@@ -134,13 +134,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task RemoveMultipleServersFromLibrary()
+        public void RemoveMultipleServersFromLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random server with multiple versions and remove them from the library.
             //
@@ -153,24 +153,24 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task RemoveServerFromLibraryExpectFailure()
+        public void RemoveServerFromLibraryExpectFailure()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             Assert.IsFalse(env.m_Library.Remove(Guid.Empty));
         }
 
         [DataTestMethod]
-        public async Task AddServerToLibraryExpectFailure()
+        public void AddServerToLibraryExpectFailure()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random server and try to add it to the library.
             //
@@ -182,13 +182,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task MergeServersIntoLibraryExpectMultiple()
+        public void MergeServersIntoLibraryExpectMultiple()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Pick a random range of servers, remove them from the library, then merge back.
             //
@@ -212,13 +212,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task MergeServersIntoLibraryExpectNone()
+        public void MergeServersIntoLibraryExpectNone()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             //
             // Merging the current list should result in no new servers.
             //
@@ -231,13 +231,13 @@ namespace UnitTests
         }
 
         [DataTestMethod]
-        public async Task FindServerByKeywordInLibrary()
+        public void FindServerByKeywordInLibrary()
         {
             var env = new Environment();
             env.Initialize();
             Assert.AreEqual(0, env.m_Library.GetServerCount());
-            _ = await env.m_Library.Refresh(
-                env.m_Settings, null, null, null, s_MaxServers);
+            Task.Run(() => env.m_Library.Refresh(
+                env.m_Settings, null, null, null, s_MaxServers)).Wait();
             var servers = env.m_Library.Find(new RpcLibraryFilter() { Keyword = "lsass" });
             Assert.IsTrue(servers.Count > 0);
         }

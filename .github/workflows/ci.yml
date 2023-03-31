@@ -1,11 +1,12 @@
 name: CI
-env:
-  DOTNET_VERSION: '4.8.1'
 on: [push, pull_request, workflow_dispatch]
 jobs:
   RPCInvestigator_Unit_Tests:
     runs-on: windows-latest
     steps:
+      # setup .NET using setup-dotnet action
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3.0.3
       - name: checkout code
         uses: actions/checkout@v2
       # Install MS debugging tools using hard-coded MSI (to-do: replace this)
@@ -16,12 +17,6 @@ jobs:
       # Build project files (nuget restore is automatic here.)
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1
-      - name: Save VS install path
-        run: |
-          $vswhere = $env:Programfiles + " (x86)\Microsoft Visual Studio\Installer\vswhere"
-          $vs_install_path = & $vswhere -property installationPath
-          $vstest_location = $vs_install_path + "\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe"
-          echo "VSTEST_LOCATION=$vstest_location" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Setup NuGet
         uses: nuget/setup-nuget@v1
       - uses: actions/cache@v3
@@ -36,8 +31,4 @@ jobs:
         run: |
           msbuild.exe RpcInvestigator.sln /nologo /nr:false /p:platform="Any CPU" /p:configuration="Release"
       - name: Test
-        # Note: "dotnet test" only works for .NET core, not .NET framework. Apparently MSTest is deprecated,
-        # and we're supposed to use VsTest.console.exe, whatever that is. But it's buried in the VS install
-        # folder which can be discovered via %ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere
-        run: |
-          & $env:VSTEST_LOCATION UnitTests\bin\Release\UnitTests.dll
+        run: dotnet test --no-restore --verbosity normal
