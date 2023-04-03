@@ -17,10 +17,16 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.CodeDom.Compiler;
 using System.IO;
 using System.Globalization;
-using FastColoredTextBoxNS;
+using NtApiDotNet.Ndr;
+using RpcInvestigator.Util;
+using Range = FastColoredTextBoxNS.Range;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using System.Runtime.Loader;
+using System.CodeDom.Compiler;
 
 namespace RpcInvestigator
 {
@@ -284,36 +290,48 @@ namespace RpcInvestigator
             }
             MessageBox.Show("Connected OK");
         }
-
     }
 
     public static class ClientCompiler
     {
         public static Assembly Compile(string Source)
         {
-            CompilerParameters compile_params = new CompilerParameters();
-            using (TempFileCollection temp_files = new TempFileCollection(Path.GetTempPath()))
+            var syntaxTree = CSharpSyntaxTree.ParseText(Source);
+            string assemblyName = Path.GetRandomFileName();
+            var basePath = Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location);
+
+            var refPaths = new[] {
+                typeof(Object).GetTypeInfo().Assembly.Location,
+                typeof(Console).GetTypeInfo().Assembly.Location,
+                Path.Combine(basePath, "NtApiDotNet.dll"),
+                Path.Combine(basePath, "netstandard.dll"),
+                Path.Combine(basePath, "system.collections.dll"),
+                Path.Combine(basePath, "system.runtime.dll")
+            };
+            MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
+
+            var compilation = CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees: new[] { syntaxTree },
+                references: references,
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            using (var ms = new MemoryStream())
             {
-                compile_params.GenerateExecutable = false;
-                compile_params.GenerateInMemory = true;
-                compile_params.IncludeDebugInformation = true;
-                compile_params.TempFiles = temp_files;
-                compile_params.ReferencedAssemblies.Add(typeof(RpcClientBuilder).Assembly.Location);
-                compile_params.ReferencedAssemblies.Add("System.dll");
-                compile_params.ReferencedAssemblies.Add("System.Core.dll");
-                temp_files.KeepFiles = true;
-                CompilerResults results = CodeDomProvider.CreateProvider("CSharp").
-                    CompileAssemblyFromSource(compile_params, Source);
-                if (results.Errors.HasErrors)
+                var result = compilation.Emit(ms);
+                if (!result.Success)
                 {
                     StringBuilder errors = new StringBuilder();
-                    foreach (CompilerError e in results.Errors)
+                    foreach (var e in result.Diagnostics)
                     {
-                        errors.AppendLine(e.ToString());
+                        errors.AppendLine(e.GetMessage());
                     }
                     throw new Exception("Compiler errors:" + errors.ToString());
                 }
-                return results.CompiledAssembly;
+                else
+                {
+                    ms.Seek(0, SeekOrigin.Begin);
+                    return AssemblyLoadContext.Default.LoadFromStream(ms);
+                }
             }
         }
 
@@ -330,12 +348,8 @@ namespace RpcInvestigator
             // So this becomes a text search problem.
             //
             RpcClientBuilderArguments args = new RpcClientBuilderArguments();
-            args.Flags = RpcClientBuilderFlags.GenerateConstructorProperties |
-                RpcClientBuilderFlags.StructureReturn |
-                RpcClientBuilderFlags.HideWrappedMethods |
-                RpcClientBuilderFlags.UnsignedChar |
+            args.Flags = RpcClientBuilderFlags.UnsignedChar |
                 RpcClientBuilderFlags.NoNamespace |
-                RpcClientBuilderFlags.MarshalPipesAsArrays |
                 RpcClientBuilderFlags.ExcludeVariableSourceText;
             args.NamespaceName = "RpcInvestigator";
             args.ClientName = "Client1";

@@ -69,7 +69,7 @@ namespace RpcInvestigator.Util
             {
                 sb.AppendLine("User SID: " + UserSid.ToString());
             }
-            if (ActivityId != null)
+            if (ActivityId != Guid.Empty)
             {
                 sb.AppendLine("Activity ID: " + ActivityId.ToString());
             }

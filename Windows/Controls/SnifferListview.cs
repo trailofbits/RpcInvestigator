@@ -318,7 +318,11 @@ namespace RpcInvestigator.Windows.Controls
             });
             var location = Path.GetRandomFileName() + ".txt";
             File.WriteAllText(location, sb.ToString());
-            Process.Start(location);
+            var psi = new ProcessStartInfo();
+            psi.FileName = location;
+            psi.WorkingDirectory = Directory.GetParent(location).FullName;
+            psi.UseShellExecute = true;
+            Process.Start(psi);
         }
 
         private

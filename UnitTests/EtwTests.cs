@@ -27,80 +27,77 @@ namespace UnitTests
         [DataTestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public async Task RealTimeEtwTraceTest(bool EnableDebugEvents)
+        public void RealTimeEtwTraceTest(bool EnableDebugEvents)
         {
             var env = new Environment();
             env.Initialize();
             int eventsConsumed = 0;
 
-            await Task.Run(() =>
+            //
+            // This trace will automatically terminate after a set number
+            // of ETW events have been successfully consumed/parsed.
+            //
+            using (var trace = new EtwRealTimeTrace(
+                "RPC Investigator Unit Test Real-Time Tracing",
+                s_RpcEtwGuid,
+                EnableDebugEvents))
+            using (var parserBuffers = new EtwEventParserBuffers())
             {
-                //
-                // This trace will automatically terminate after a set number
-                // of ETW events have been successfully consumed/parsed.
-                //
-                using (var trace = new EtwRealTimeTrace(
-                    "RPC Investigator Unit Test Real-Time Tracing",
-                    s_RpcEtwGuid,
-                    EnableDebugEvents))
-                using (var parserBuffers = new EtwEventParserBuffers())
+                try
                 {
-                    try
-                    {
-                        trace.Start();
+                    trace.Start();
 
-                        //
-                        // Begin consuming events. This is a blocking call.
-                        //
-                        trace.Consume(new EventRecordCallback((Event) =>
-                        {
-                            var evt = (EVENT_RECORD)Marshal.PtrToStructure(
-                                    Event, typeof(EVENT_RECORD));
-
-                            var parser = new EtwEventParser(
-                                evt,
-                                parserBuffers,
-                                trace.GetPerfFreq());
-                            try
-                            {
-                                var result = parser.Parse();
-                                Assert.IsNotNull(result);
-                            }
-                            catch (Exception ex)
-                            {
-                                Assert.Fail("Unable to parse event: " + ex.Message);
-                            }
-                            eventsConsumed++;
-                        }),
-                        new BufferCallback((LogFile) =>
-                        {
-                            var logfile = new EVENT_TRACE_LOGFILE();
-                            try
-                            {
-                                logfile = (EVENT_TRACE_LOGFILE)
-                                    Marshal.PtrToStructure(LogFile, typeof(EVENT_TRACE_LOGFILE));
-                            }
-                            catch (Exception ex)
-                            {
-                                Assert.Fail("Unable to cast EVENT_TRACE_LOGFILE: " + ex.Message);
-                            }
-                            if (eventsConsumed >= s_NumEvents)
-                            {
-                                return 0;
-                            }
-                            return 1;
-                        }));
-                    }
-                    catch (Exception ex)
+                    //
+                    // Begin consuming events. This is a blocking call.
+                    //
+                    trace.Consume(new EventRecordCallback((Event) =>
                     {
-                        Assert.Fail("An exception occurred when consuming events: " + ex.Message);
-                    }
+                        var evt = (EVENT_RECORD)Marshal.PtrToStructure(
+                                Event, typeof(EVENT_RECORD));
+
+                        var parser = new EtwEventParser(
+                            evt,
+                            parserBuffers,
+                            trace.GetPerfFreq());
+                        try
+                        {
+                            var result = parser.Parse();
+                            Assert.IsNotNull(result);
+                        }
+                        catch (Exception ex)
+                        {
+                            Assert.Fail("Unable to parse event: " + ex.Message);
+                        }
+                        eventsConsumed++;
+                    }),
+                    new BufferCallback((LogFile) =>
+                    {
+                        var logfile = new EVENT_TRACE_LOGFILE();
+                        try
+                        {
+                            logfile = (EVENT_TRACE_LOGFILE)
+                                Marshal.PtrToStructure(LogFile, typeof(EVENT_TRACE_LOGFILE));
+                        }
+                        catch (Exception ex)
+                        {
+                            Assert.Fail("Unable to cast EVENT_TRACE_LOGFILE: " + ex.Message);
+                        }
+                        if (eventsConsumed >= s_NumEvents)
+                        {
+                            return 0;
+                        }
+                        return 1;
+                    }));
                 }
-            });
+                catch (Exception ex)
+                {
+                    Assert.Fail("An exception occurred when consuming events: " + ex.Message);
+                }
+            }
         }
 
         [TestMethod]
-        [DeploymentItem(@"..\..\data\trace_files\ms-rpc-capture-arrays.etl")]
+        [DeploymentItem(@"..\..\..\..\data\trace_files\ms-rpc-capture-arrays.etl")]
         public void FileEtwTraceTest()
         {
             var env = new Environment();

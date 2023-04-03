@@ -11,11 +11,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using NtApiDotNet.Win32;
 using NtApiDotNet;
+using ProtoBuf;
+using ProtoBuf.Serializers;
+using ProtoBuf.Meta;
 
 namespace RpcInvestigator
 {
@@ -38,25 +40,29 @@ namespace RpcInvestigator
         }
     }
 
-    [Serializable]
+    [ProtoBuf.ProtoContract]
     public class RpcServerEntry
     {
         public RpcServerEntry()
         {
         }
+        [ProtoBuf.ProtoMember(1)]
         public Version InterfaceVersion;
+        [ProtoBuf.ProtoMember(2)]
         public int PointerSize;
+        [ProtoBuf.ProtoMember(3)]
         public byte[] SerializedServer;
     }
 
-    [Serializable]
+    [ProtoBuf.ProtoContract]
     public class RpcServerData
     {
         //
         // Note: this class is NOT thread-safe.
         //
-
+        [ProtoBuf.ProtoMember(1)]
         public int m_Version;
+        [ProtoBuf.ProtoMember(2)]
         private Dictionary<Guid, List<RpcServerEntry>> m_Entries;
 
         public RpcServerData()
@@ -305,8 +311,8 @@ namespace RpcInvestigator
                 {
                     using (var stream = File.OpenRead(m_Path))
                     {
-                        BinaryFormatter formatter = new BinaryFormatter();
-                        m_Data = (RpcServerData)formatter.Deserialize(stream);
+                        RuntimeTypeModel.Default.Add(typeof(Version));
+                        m_Data = Serializer.Deserialize<RpcServerData>(stream);
                         Trace(TraceLoggerType.RpcLibrary,
                             TraceEventType.Verbose,
                             "Library: successfully loaded '" + m_Path + "'");
@@ -333,8 +339,8 @@ namespace RpcInvestigator
                     FileAccess.ReadWrite,
                     FileShare.ReadWrite))
                 {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, m_Data);
+                    RuntimeTypeModel.Default.Add(typeof(Version));
+                    Serializer.Serialize(stream, m_Data);
                 }
             }
             catch (Exception ex)

@@ -183,7 +183,7 @@ namespace RpcInvestigator.Windows.Controls
                 // Also, ignore this tool as well.
                 //
                 if (!evt.UserDataProperties.ContainsKey("InterfaceUuid") ||
-                    evt.ActivityId == null || evt.ActivityId == Guid.Empty ||
+                    evt.ActivityId == Guid.Empty ||
                     evt.ProcessId == Process.GetCurrentProcess().Id)
                 {
                     continue;

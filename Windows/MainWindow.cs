@@ -178,7 +178,11 @@ namespace RpcInvestigator
 
         private void logsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(Settings.m_LogDir);
+            var psi = new ProcessStartInfo();
+            psi.FileName = Settings.m_LogDir;
+            psi.WorkingDirectory = Settings.m_LogDir;
+            psi.UseShellExecute = true;
+            Process.Start(psi);
         }
 
         private async void libraryServersToolStripMenuItem_Click(object sender, EventArgs e)
@@ -280,7 +284,7 @@ namespace RpcInvestigator
                     statusLabel.Text = message;
                     progressBar.Value = 0;
                     progressBar.Visible = false;
-            });
+                });
             ToggleMenu(true);
         }
 
@@ -294,7 +298,11 @@ namespace RpcInvestigator
             var location = Path.Combine(new string[] { Settings.m_LogDir,
                  "library-text-"+Path.GetRandomFileName() + ".txt" });
             File.WriteAllText(location, m_Library.ToString());
-            Process.Start(location);
+            var psi = new ProcessStartInfo();
+            psi.FileName = location;
+            psi.WorkingDirectory = Directory.GetParent(location).FullName;
+            psi.UseShellExecute = true;
+            Process.Start(psi);
             ToggleMenu(true);
         }
 
@@ -313,7 +321,8 @@ namespace RpcInvestigator
                 },
                 ref m_Settings);
             m_RpcSnifferWindow.Show();
-            m_RpcSnifferWindow.FormClosed += delegate (object w, FormClosedEventArgs args) {
+            m_RpcSnifferWindow.FormClosed += delegate (object w, FormClosedEventArgs args)
+            {
                 m_RpcSnifferWindow = null;
             };
         }

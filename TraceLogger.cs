@@ -38,6 +38,7 @@ namespace RpcInvestigator
             new TraceSource("EtwEventParser", SourceLevels.Verbose),
             new TraceSource("EtwProviderParser", SourceLevels.Verbose),
             new TraceSource("SddlParser", SourceLevels.Verbose),
+            new TraceSource("ML", SourceLevels.Verbose),
         };
 
         public enum TraceLoggerType
@@ -58,6 +59,7 @@ namespace RpcInvestigator
             EtwEventParser,
             EtwProviderParser,
             SddlParser,
+            ML,
             Max
         }
 
