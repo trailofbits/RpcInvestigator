@@ -15,6 +15,7 @@ using System.IO;
 using System.Windows.Forms;
 using RpcInvestigator.Windows;
 using static RpcInvestigator.TraceLogger;
+using System.Security.Principal;
 
 namespace RpcInvestigator
 {
@@ -24,6 +25,8 @@ namespace RpcInvestigator
         private RpcLibrary m_Library;
         private TabManager m_TabManager;
         private Sniffer m_RpcSnifferWindow;
+        private bool m_IsClosing;
+        private object m_CloseLock = new object();
 
         public MainWindow()
         {
@@ -53,41 +56,52 @@ namespace RpcInvestigator
 
         private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (m_RpcSnifferWindow != null)
+            lock (m_CloseLock)
             {
-                MessageBox.Show("Please close the RPC sniffer window.");
-                e.Cancel = true;
-                return;
+                m_IsClosing = true;
+                if (m_RpcSnifferWindow != null)
+                {
+                    MessageBox.Show("Please close the RPC sniffer window.");
+                    e.Cancel = true;
+                    return;
+                }
             }
         }
         private void mainTabControl_DrawItem(object sender, DrawItemEventArgs e)
         {
-            TabPage thisTab = mainTabControl.TabPages[e.Index];
-            string tabTitle = thisTab.Text;
-            Rectangle tabRect = mainTabControl.GetTabRect(e.Index);
-            tabRect.Inflate(-2, -2);
+            lock (m_CloseLock)
+            {
+                if (m_IsClosing)
+                {
+                    return;
+                }
+                TabPage thisTab = mainTabControl.TabPages[e.Index];
+                string tabTitle = thisTab.Text;
+                Rectangle tabRect = mainTabControl.GetTabRect(e.Index);
+                tabRect.Inflate(-2, -2);
 
-            //
-            // Draw the icon for the tab's selected icon image.
-            //
-            var icon = imageList1.Images[thisTab.ImageIndex];
-            e.Graphics.DrawImage(icon,
-                (tabRect.Left + 5),
-                tabRect.Top + (tabRect.Height - icon.Height) / 2);
-            //
-            // Draw the close tab button
-            //
-            Image closeIcon = imageList2.Images[0];
-            e.Graphics.DrawImage(closeIcon,
-                (tabRect.Right - icon.Width) + 5,
-                tabRect.Top + (tabRect.Height - closeIcon.Height) / 2);
-            //
-            // Draw the tab title
-            //
-            var textRect = new Rectangle(tabRect.X + icon.Width + 5, tabRect.Y,
-                tabRect.Width - icon.Width - closeIcon.Width, tabRect.Height);
-            TextRenderer.DrawText(e.Graphics, tabTitle, thisTab.Font,
-                textRect, thisTab.ForeColor, TextFormatFlags.Left);
+                //
+                // Draw the icon for the tab's selected icon image.
+                //
+                var icon = imageList1.Images[thisTab.ImageIndex];
+                e.Graphics.DrawImage(icon,
+                    (tabRect.Left + 5),
+                    tabRect.Top + (tabRect.Height - icon.Height) / 2);
+                //
+                // Draw the close tab button
+                //
+                Image closeIcon = imageList2.Images[0];
+                e.Graphics.DrawImage(closeIcon,
+                    (tabRect.Right - icon.Width) + 5,
+                    tabRect.Top + (tabRect.Height - closeIcon.Height) / 2);
+                //
+                // Draw the tab title
+                //
+                var textRect = new Rectangle(tabRect.X + icon.Width + 5, tabRect.Y,
+                    tabRect.Width - icon.Width - closeIcon.Width, tabRect.Height);
+                TextRenderer.DrawText(e.Graphics, tabTitle, thisTab.Font,
+                    textRect, thisTab.ForeColor, TextFormatFlags.Left);
+            }
         }
 
         private void mainTabControl_MouseDown(object sender, MouseEventArgs e)
@@ -356,5 +370,32 @@ namespace RpcInvestigator
         }
 
         #endregion
+
+        private async void MainWindow_Shown(object sender, EventArgs e)
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+                {
+                    MessageBox.Show("Warning: RPC Investigator does not have administrator " +
+                        "privileges. RPC interfaces inside privileged processes will not " +
+                        "be accessible, and many features will be limited.",
+                        "Administrator access is required",
+                        buttons: MessageBoxButtons.OK,
+                        icon: MessageBoxIcon.Warning);
+
+                }
+            }
+
+            if (m_Settings.m_DisplayLibraryOnStart && !DetectEmptyLibrary())
+            {
+                ToggleMenu(false);
+                var rpcServerTab = await m_TabManager.LoadRpcLibraryServersTab(new RpcLibraryFilter());
+                _ = await m_TabManager.LoadRpcLibraryProceduresTab(new RpcLibraryFilter());
+                ((TabControl)rpcServerTab.Parent).SelectedIndex = 0;
+                ToggleMenu(true);
+            }
+        }
     }
 }

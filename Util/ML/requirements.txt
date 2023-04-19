@@ -1,0 +1,12 @@
+datasets
+loralib
+protobuf
+sentencepiece
+# Todo: remove branch specification below when transformers 4.28.0 is released which includes LlamaTokenizer
+git+https://github.com/huggingface/transformers@main#egg=transformers
+accelerate
+bitsandbytes
+git+https://github.com/huggingface/peft.git
+gradio
+appdirs
+pyllamacpp # only used by gpt4all

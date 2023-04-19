@@ -24,7 +24,7 @@
 	<ItemGroup>
 		<PackageReference Include="FastColoredTextBox.Net5" Version="2.16.26" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0-1.final" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0-preview.2.23128.3" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0-preview.3.23174.8" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Remove="docs\**" />
@@ -44,7 +44,16 @@
 	  <None Remove="UnitTests\**" />
 	</ItemGroup>
 	<ItemGroup>
+	  <Content Remove="C:\Users\lilhoser\.nuget\packages\microsoft.semantickernel\0.10.72.1-preview\contentFiles\any\netstandard2.1\Connectors\OpenAI\Tokenizers\Settings\encoder.json" />
+	  <Content Remove="C:\Users\lilhoser\.nuget\packages\microsoft.semantickernel\0.10.72.1-preview\contentFiles\any\netstandard2.1\Connectors\OpenAI\Tokenizers\Settings\vocab.bpe" />
+	</ItemGroup>
+	<ItemGroup>
 	  <None Remove=".gitignore" />
+	  <None Remove="Util\ML\Generators\alpaca-lora.py" />
+	  <None Remove="Util\ML\Generators\generator_config.py" />
+	  <None Remove="Util\ML\Generators\gpt4all-alpaca-13b-q4.py" />
+	  <None Remove="Util\ML\requirements-gpu.txt" />
+	  <None Remove="Util\ML\requirements.txt" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="images\play.png" />
@@ -57,11 +66,26 @@
 		<Content Include="tob.ico" />
 	</ItemGroup>
 	<ItemGroup>
+	  <EmbeddedResource Include="Util\ML\Generators\alpaca-lora.py" />
+	  <EmbeddedResource Include="Util\ML\Generators\generator_config.py" />
+	  <EmbeddedResource Include="Util\ML\Generators\gpt4all-alpaca-13b-q4.py" />
+	  <EmbeddedResource Include="Util\ML\requirements-cpu.txt">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="Util\ML\Generators\dolly.py">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	  <EmbeddedResource Include="Util\ML\requirements-gpu.txt" />
+	  <EmbeddedResource Include="Util\ML\requirements.txt" />
+	</ItemGroup>
+	<ItemGroup>
 	  <PackageReference Include="GraphX" Version="3.0.0" />
+	  <PackageReference Include="Microsoft.SemanticKernel" Version="0.11.146.1-preview" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="NtApiDotNet" Version="1.1.33" />
 	  <PackageReference Include="ObjectListView.Repack.NET6Plus" Version="2.9.4" />
 	  <PackageReference Include="protobuf-net" Version="3.2.16" />
+	  <PackageReference Include="pythonnet" Version="3.1.0-preview2023-04-03" />
 	  <PackageReference Include="QuikGraph" Version="2.5.0" />
 	</ItemGroup>
 	<ItemGroup>
@@ -188,5 +212,11 @@
 		  <Generator>SettingsSingleFileGenerator</Generator>
 		  <LastGenOutput>Settings.Designer.cs</LastGenOutput>
 		</None>
+		<None Update="Util\ML\Skills\Client\CodeGenerator\config.json">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="xcopy /y /e /s &quot;$(ProjectDir)\Util\ML\Skills&quot; &quot;$(ProjectDir)$(OutDir)\Skills\&quot;" />
+	</Target>
 </Project>

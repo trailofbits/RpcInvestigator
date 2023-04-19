@@ -19,14 +19,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Globalization;
-using NtApiDotNet.Ndr;
-using RpcInvestigator.Util;
 using Range = FastColoredTextBoxNS.Range;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Emit;
-using System.Runtime.Loader;
-using System.CodeDom.Compiler;
+using FastColoredTextBoxNS;
+using RpcInvestigator.Util;
+using RpcInvestigator.Util.ML;
+using System.Collections;
+using RpcInvestigator.Windows.Controls;
 
 namespace RpcInvestigator
 {
@@ -34,17 +32,48 @@ namespace RpcInvestigator
     {
         private readonly RpcServer m_RpcServer;
         private readonly RpcEndpoint m_Endpoint;
+        private Settings m_Settings;
+        private SkManager m_SkManager;
+        private AutocompleteMenu m_AutocompletePopup;
 
-        public Client(RpcServer Server, RpcEndpoint Endpoint)
+        public Client(RpcServer Server, RpcEndpoint Endpoint, Settings Settings)
         {
             InitializeComponent();
+            m_AutocompletePopup = new AutocompleteMenu(inputJson);
+            m_AutocompletePopup.MinFragmentLength = 2;
             HideConnectControls();
             m_RpcServer = Server;
             m_Endpoint = Endpoint;
+            m_Settings = Settings;
+
+            FormClosed += new FormClosedEventHandler(delegate (object s, FormClosedEventArgs e)
+            {
+                //
+                // Since this form is shown with ShowDialog() instead of Show(),
+                // we can't do this during Disposed event, because according to
+                // docs, Dispose is never called on the form for ShowDialog().
+                //
+                m_SkManager.Dispose();
+            });
         }
 
         private void Client_Shown(object sender, EventArgs e)
         {
+            //
+            // Initialize semantic kernel
+            //
+            var arguments = new ArrayList {
+                m_RpcServer
+            };
+            m_SkManager = new SkManager(
+                ProgressUpdate,
+                UpdateStatus,
+                arguments);
+            m_SkManager.Initialize();
+
+            //
+            // Add information about this RPC server and endpoint to the info groupbox.
+            //
             var last = AddLabels(
                 new Dictionary<string, string>(){
                     { "UUID", m_RpcServer.InterfaceId.ToString() },
@@ -74,6 +103,9 @@ namespace RpcInvestigator
                 last.Item2);
             }
 
+            //
+            // Generate and display the c# client source code for this RPC server.
+            //
             try
             {
                 SetSourceCode();
@@ -84,10 +116,42 @@ namespace RpcInvestigator
                     "code: " + ex.Message);
             }
 
+            //
+            // Generate a tab page to display the procedures for this RPC server.
+            //
             RpcProcedureList proceduresTab = new RpcProcedureList();
             workbenchTabControl.TabPages.Add(proceduresTab);
             proceduresTab.Build(m_RpcServer.Name, m_RpcServer.Procedures.ToList());
+
+            //
+            // Populate available SK skills for the LLM tab.
+            //
+            var skills = m_SkManager.GetAvailableSkills();
+            if (skills.Count > 0)
+            {
+                availableSkills.Items.AddRange(skills.ToArray());
+            }
+
+            //
+            // Setup autocomplete source for inputJson textbox on LLM tab.
+            //
+            var items = new List<AutoCompleteItem>();
+            foreach (var item in rpcClientSourceCode.Lines)
+            {
+                var line = item.Trim();
+                if (line == "}" || line == "{" || line.StartsWith("//") ||
+                    string.IsNullOrEmpty(line) || line.StartsWith("#"))
+                {
+                    continue;
+                }
+                items.Add(new AutoCompleteItem(line));
+            }
+            m_AutocompletePopup.Items.SetAutocompleteItems(items);
+            m_AutocompletePopup.Items.MaximumSize = new System.Drawing.Size(750, 500);
+            m_AutocompletePopup.Items.Width = 750;
         }
+
+        #region Rpc client code tab
 
         private
         void
@@ -100,7 +164,7 @@ namespace RpcInvestigator
         }
 
         private
-        (int,int)
+        (int, int)
         AddLabels(
             Dictionary<string, string> Values,
             int StartX,
@@ -171,17 +235,6 @@ namespace RpcInvestigator
                 }
                 else
                 {
-                    /*
-                    var endpoints = RpcEndpointMapper.FindAlpcEndpointForInterface(
-                            m_RpcServer.InterfaceId, m_RpcServer.InterfaceVersion);
-                    if (endpoints == null || endpoints.Count() == 0)
-                    {
-                        MessageBox.Show("Unable to locate an endpoint for server " +
-                            m_RpcServer.InterfaceId.ToString() + ", version " +
-                            m_RpcServer.InterfaceVersion.ToString() + " - unable to " +
-                            "retrieve server definition.");
-                    }
-                    */
                     ((RpcClientBase)client).Connect();
                 }
 
@@ -209,7 +262,7 @@ namespace RpcInvestigator
                    null,
                    null,
                    CultureInfo.CurrentCulture);
-                outputRichTextBox.Text += "> Run() output:" + Environment.NewLine +
+                rpcClientOutput.Text += "> Run() output:" + Environment.NewLine +
                     sb.ToString() +
                     Environment.NewLine;
             }
@@ -290,85 +343,238 @@ namespace RpcInvestigator
             }
             MessageBox.Show("Connected OK");
         }
-    }
 
-    public static class ClientCompiler
-    {
-        public static Assembly Compile(string Source)
+        private void copyClientCodeButton_Click(object sender, EventArgs e)
         {
-            var syntaxTree = CSharpSyntaxTree.ParseText(Source);
-            string assemblyName = Path.GetRandomFileName();
-            var basePath = Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location);
-
-            var refPaths = new[] {
-                typeof(Object).GetTypeInfo().Assembly.Location,
-                typeof(Console).GetTypeInfo().Assembly.Location,
-                Path.Combine(basePath, "NtApiDotNet.dll"),
-                Path.Combine(basePath, "netstandard.dll"),
-                Path.Combine(basePath, "system.collections.dll"),
-                Path.Combine(basePath, "system.runtime.dll")
-            };
-            MetadataReference[] references = refPaths.Select(r => MetadataReference.CreateFromFile(r)).ToArray();
-
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                syntaxTrees: new[] { syntaxTree },
-                references: references,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            using (var ms = new MemoryStream())
+            var text = rpcClientSourceCode.Text;
+            if (string.IsNullOrEmpty(text))
             {
-                var result = compilation.Emit(ms);
-                if (!result.Success)
+                return;
+            }
+            Clipboard.SetText(text);
+        }
+
+        #endregion
+
+        #region LLM tab
+
+
+        private void copyResponseButton_Click(object sender, EventArgs e)
+        {
+            var text = llmResponse.Text;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            Clipboard.SetText(text);
+        }
+
+        private async void submitButton_Click(object sender, EventArgs e)
+        {
+            var model = modelLocation.Text;
+            if (string.IsNullOrEmpty(model))
+            {
+                MessageBox.Show("A model location is required.");
+                return;
+            }
+            var prompt = promptText.Text;
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                MessageBox.Show("You must provide a prompt.");
+                return;
+            }
+            var input = inputJson.Text;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                MessageBox.Show("You must provide input.");
+                return;
+            }
+
+            var skill = availableSkills.SelectedItem;
+            if (skill == null)
+            {
+                MessageBox.Show("You must select a skill.");
+                return;
+            }
+
+            var generator = availableGenerators.SelectedItem;
+            if (generator == null)
+            {
+                MessageBox.Show("You must select a generator for this model.");
+                return;
+            }
+
+            if (!m_SkManager.IsPythonInitialized())
+            {
+                ToggleUi(true, SkManager.s_InitializeSteps);
+                try
                 {
-                    StringBuilder errors = new StringBuilder();
-                    foreach (var e in result.Diagnostics)
-                    {
-                        errors.AppendLine(e.GetMessage());
-                    }
-                    throw new Exception("Compiler errors:" + errors.ToString());
+                    await m_SkManager.InitializePython(m_Settings);
                 }
-                else
+                catch (Exception ex)
                 {
-                    ms.Seek(0, SeekOrigin.Begin);
-                    return AssemblyLoadContext.Default.LoadFromStream(ms);
+                    MessageBox.Show(ex.Message);
+                    ToggleUi(false);
+                    return;
                 }
+            }
+
+            ToggleUi(true, SkManager.s_RunSkillSteps);
+            try
+            {
+                var result = await m_SkManager.RunSkill(
+                    (string)skill, model, (string)generator, prompt, input);
+                llmResponse.Clear();
+                llmResponse.Text = result;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            ToggleUi(false);
+        }
+
+        private void browseButton_Click(object sender, EventArgs e)
+        {
+            if (availableGenerators.SelectedItem == null)
+            {
+                return;
+            }
+
+            //
+            // Depending on the model, a file or folder might be required.
+            //
+            if ((string)availableGenerators.SelectedItem == "dolly")
+            {
+                var dialog = new FolderBrowserDialog();
+
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                var modelFile = dialog.SelectedPath;
+                modelLocation.Text = modelFile;
+            }
+            else if ((string)availableGenerators.SelectedItem == "gpt4all-alpaca-13b-q4")
+            {
+                var dialog = new OpenFileDialog();
+
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    return;
+                }
+
+                var modelFile = dialog.FileName;
+                modelLocation.Text = modelFile;
+            }
+            else
+            {
+                MessageBox.Show("Support has not been added for that generator.");
+                return;
             }
         }
 
-        public static string GetBaseClientCode(RpcServer Server)
+        private void availableSkills_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var item = availableSkills.SelectedItem;
+            if (item == null)
+            {
+                return;
+            }
+            else if ((string)item == "Custom")
+            {
+                //
+                // The user will define the prompt and input.
+                //
+                promptText.Enabled = true;
+                return;
+            }
+
+            //
+            // Pre-defined semantic skills have readonly prompt text
+            //
+            promptText.Enabled = false;
+            promptText.Text = m_SkManager.GetPromptTemplate((string)item);
+
+            //
+            // Supply editable skill input.
+            //
+            inputJson.Text = m_SkManager.GetDefaultInput((string)item);
+        }
+
+        #endregion
+
+        private void ToggleUi(bool Initialize, int Steps = 0)
+        {
+            ToggleMenu(!Initialize);
+            ToggleStatusStrip(Initialize, Steps);
+        }
+
+        private void ToggleMenu(bool Enable)
+        {
+            rpcServerGroupbox.Enabled = Enable;
+            workbenchTabControl.Enabled = Enable;
+        }
+
+        private void ToggleStatusStrip(bool Initialize, int Steps)
+        {
+            if (Initialize)
+            {
+                toolStripProgressBar1.Enabled = true;
+                toolStripProgressBar1.Visible = true;
+                toolStripProgressBar1.Step = 1;
+                toolStripProgressBar1.Value = 0;
+                toolStripProgressBar1.Maximum = Steps;
+                return;
+            }
+            toolStripProgressBar1.Enabled = false;
+            toolStripProgressBar1.Visible = false;
+            toolStripProgressBar1.Step = 0;
+            toolStripProgressBar1.Value = 0;
+            toolStripProgressBar1.Maximum = 0;
+            toolStripStatusLabel1.Text = "";
+        }
+
+        private
+        void
+        UpdateStatus(string Message)
         {
             //
-            // TODO: It would be nice if RpcClientBuilder exposed its internal
-            // routines for different parts of the source code creation process,
-            // such that we could add method definitions to the resulting Client
-            // class prior to source code generation.
-            // As is stands, all those things are marked private and we can only
-            // either get back an immutable assembly object or the finalized source
-            // code as text, neither of which are ideal for modifying the code.
-            // So this becomes a text search problem.
+            // Thread context can be arbitrary. Invoke on main UI thread.
             //
-            RpcClientBuilderArguments args = new RpcClientBuilderArguments();
-            args.Flags = RpcClientBuilderFlags.UnsignedChar |
-                RpcClientBuilderFlags.NoNamespace |
-                RpcClientBuilderFlags.ExcludeVariableSourceText;
-            args.NamespaceName = "RpcInvestigator";
-            args.ClientName = "Client1";
-            var src = RpcClientBuilder.BuildSource(Server, args);
-            src = "using System;" + Environment.NewLine +
-                "using System.Threading.Tasks;" + Environment.NewLine +
-                "using NtApiDotNet.Win32;" + Environment.NewLine +
-                "using NtApiDotNet;" + Environment.NewLine +
-                "using NtApiDotNet.Ndr.Marshal;" + Environment.NewLine +
-                src;
-            int loc = src.IndexOf("public Client1()");
-            src = src.Insert(loc,
-                "public async Task<bool> Run()" + Environment.NewLine +
-                "        {" + Environment.NewLine +
-                "            return true;" + Environment.NewLine +
-                "        }" + Environment.NewLine+
-                "        ");
-            return src;
+            statusStrip1.Invoke((MethodInvoker)(() =>
+            {
+                toolStripStatusLabel1.Visible = true;
+                toolStripStatusLabel1.Enabled = true;
+                toolStripStatusLabel1.Text = Message;
+            }));
+        }
 
+        private
+        void
+        ProgressUpdate()
+        {
+            //
+            // Thread context can be arbitrary. Invoke on main UI thread.
+            //
+            statusStrip1.Invoke((MethodInvoker)(() =>
+            {
+                toolStripProgressBar1.PerformStep();
+            }));
+        }
+
+        private void availableGenerators_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (availableGenerators.SelectedItem == null ||
+                string.IsNullOrEmpty((string)availableGenerators.SelectedItem))
+            {
+                modelLocation.Enabled = false;
+                browseButton.Enabled = false;
+                return;
+            }
+            modelLocation.Enabled = true;
+            browseButton.Enabled = true;
         }
     }
 }

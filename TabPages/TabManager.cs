@@ -16,7 +16,7 @@ namespace RpcInvestigator.TabPages
     public class TabManager
     {
         private TabControl m_TabControl;
-        private Settings m_Settings;
+        public readonly Settings m_Settings;
         private RpcLibrary m_Library;
         private ToolStripProgressBar m_ProgressBar;
         private ToolStripStatusLabel m_StatusLabel;
@@ -123,7 +123,7 @@ namespace RpcInvestigator.TabPages
 
             if (!TabExists("Procedures", out tab))
             {
-                tab = new RpcLibraryProcedureList(m_Library);
+                tab = new RpcLibraryProcedureList(m_Library, this);
                 m_TabControl.TabPages.Add(tab);
             }
             libraryProceduresTab = tab as RpcLibraryProcedureList;
@@ -154,7 +154,7 @@ namespace RpcInvestigator.TabPages
 
             if (!TabExists(tabName, out tab))
             {
-                tab = new RpcLibraryProcedureList(m_Library);
+                tab = new RpcLibraryProcedureList(m_Library, this);
                 tab.Text = tabName; // override name
                 m_TabControl.TabPages.Add(tab);
             }

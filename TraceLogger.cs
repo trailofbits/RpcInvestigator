@@ -5,8 +5,11 @@
 // This source code is licensed in accordance with the terms specified in
 // the LICENSE file found in the root directory of this source tree.
 //
+using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
+using static RpcInvestigator.TraceLogger;
 
 namespace RpcInvestigator
 {
@@ -39,6 +42,7 @@ namespace RpcInvestigator
             new TraceSource("EtwProviderParser", SourceLevels.Verbose),
             new TraceSource("SddlParser", SourceLevels.Verbose),
             new TraceSource("ML", SourceLevels.Verbose),
+            new TraceSource("PythonWrapper", SourceLevels.Verbose),
         };
 
         public enum TraceLoggerType
@@ -60,6 +64,7 @@ namespace RpcInvestigator
             EtwProviderParser,
             SddlParser,
             ML,
+            PythonWrapper,
             Max
         }
 
@@ -89,6 +94,48 @@ namespace RpcInvestigator
             // Event ID is not used.
             //
             Sources[(int)Type].TraceEvent(EventType, 1, Message);
+        }
+    }
+
+    public class MLLogger : ILogger
+    {
+        public MLLogger()
+        {
+        }
+
+        public IDisposable BeginScope<TState>(TState state) { return default; }
+
+        public bool IsEnabled(LogLevel logLevel) { return true; }
+
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception exception,
+            Func<TState, Exception, string> formatter)
+        {
+            TraceEventType level = TraceEventType.Verbose;
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    level = TraceEventType.Critical;
+                    break;
+                case LogLevel.Error:
+                    level = TraceEventType.Error;
+                    break;
+                case LogLevel.Warning:
+                    level = TraceEventType.Warning;
+                    break;
+                case LogLevel.Information:
+                    level = TraceEventType.Information;
+                    break;
+                case LogLevel.Debug:
+                    level = TraceEventType.Verbose;
+                    break;
+            }
+            Trace(TraceLoggerType.ML,
+                  level,
+                  formatter(state, exception));
         }
     }
 }

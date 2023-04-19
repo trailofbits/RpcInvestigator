@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using NtApiDotNet.Win32;
 using System.Diagnostics;
 using System.Linq;
+using RpcInvestigator.TabPages;
 
 namespace RpcInvestigator
 {
@@ -24,9 +25,11 @@ namespace RpcInvestigator
     {
         public FastObjectListView m_Listview;
         private RpcLibrary m_Library;
+        private TabManager m_Manager;
 
-        public RpcLibraryProcedureList(RpcLibrary Library)
+        public RpcLibraryProcedureList(RpcLibrary Library, TabManager Manager)
         {
+            m_Manager = Manager;
             m_Library = Library;
             m_Listview = new FastObjectListView();
             Random random = new Random();
@@ -211,7 +214,7 @@ namespace RpcInvestigator
                     id + " and version " + version);
                 return;
             }
-            var clientWindow = new Client(server, endpoint);
+            var clientWindow = new Client(server, endpoint, m_Manager.m_Settings);
             clientWindow.ShowDialog();
         }
     }

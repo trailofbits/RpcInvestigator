@@ -156,7 +156,7 @@ namespace RpcInvestigator
                     id.ToString() + ", version " + version.ToString());
                 return;
             }
-            var clientWindow = new Client(server, endpoint);
+            var clientWindow = new Client(server, endpoint, m_Manager.m_Settings);
             clientWindow.ShowDialog();
         }
 

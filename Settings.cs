@@ -28,7 +28,10 @@ namespace RpcInvestigator
         public string m_SymbolPath;
         public SourceLevels m_TraceLevel;
         public List<string> m_SnifferColumns;
-
+        public string m_PythonVenvPath;
+        public string m_PythonDllLocation;
+        public bool m_DisplayLibraryOnStart;
+        public bool m_UseGpuForInference;
         public Settings()
         {
             m_TraceLevel = SourceLevels.Information;

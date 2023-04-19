@@ -236,7 +236,7 @@
             statusStrip1.Location = new System.Drawing.Point(0, 903);
             statusStrip1.MaximumSize = new System.Drawing.Size(0, 44);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new System.Drawing.Size(163, 42);
+            statusStrip1.Size = new System.Drawing.Size(22, 22);
             statusStrip1.SizingGrip = false;
             statusStrip1.TabIndex = 1;
             statusStrip1.Text = "statusStrip1";
@@ -251,7 +251,7 @@
             // 
             statusLabel.Name = "statusLabel";
             statusLabel.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
-            statusLabel.Size = new System.Drawing.Size(5, 36);
+            statusLabel.Size = new System.Drawing.Size(5, 16);
             // 
             // imageList2
             // 
@@ -291,6 +291,7 @@
             StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             Text = "RPC Investigator";
             FormClosing += MainWindow_FormClosing;
+            Shown += MainWindow_Shown;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             statusStrip1.ResumeLayout(false);
