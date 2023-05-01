@@ -25,18 +25,21 @@ namespace RpcInvestigator.Util.ML
         public static readonly int s_Steps = 3;
         private dynamic m_ModelConfig;
         private CompleteRequestSettings m_Request;
+        private readonly Settings m_Settings;
 
         public LLMBackend(
             string ModelLocation,
             string Generator,
             Action<string> UpdateRoutine,
-            Action ProgressUpdateRoutine
+            Action ProgressUpdateRoutine,
+            Settings Settings
             )
         {
             m_ModelLocation = ModelLocation;
             m_Generator = Generator;
             m_UpdateStatusRoutine = UpdateRoutine;
             m_ProgressUpdateRoutine = ProgressUpdateRoutine;
+            m_Settings = Settings;
         }
 
         public async Task<string> CompleteAsync(
@@ -91,6 +94,7 @@ namespace RpcInvestigator.Util.ML
                                 m_ModelLocation,
                                 m_Request.MaxTokens,
                                 m_Request.Temperature,
+                                !m_Settings.m_UseGpuForInference, // force cpu
                                 m_Request.TopP,
                                 m_Request.PresencePenalty,
                                 m_Request.FrequencyPenalty
@@ -106,6 +110,23 @@ namespace RpcInvestigator.Util.ML
                                 m_ModelLocation,
                                 maxTokens,
                                 m_Request.Temperature,
+                                !m_Settings.m_UseGpuForInference, // force cpu
+                                m_Request.TopP,
+                                m_Request.PresencePenalty,
+                                m_Request.FrequencyPenalty
+                            );
+                        }
+                        else if (m_Generator == "stable-lm-alpaca")
+                        {
+                            //
+                            // The base llama model has a 2048 output token limit.
+                            //
+                            int maxTokens = Math.Min(2048, m_Request.MaxTokens);
+                            config = generator_config.stable_lm_config(
+                                m_ModelLocation,
+                                maxTokens,
+                                m_Request.Temperature,
+                                !m_Settings.m_UseGpuForInference, // force cpu
                                 m_Request.TopP,
                                 m_Request.PresencePenalty,
                                 m_Request.FrequencyPenalty

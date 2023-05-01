@@ -4,7 +4,7 @@
   "description": "Produce C# code to invoke the given RPC client",
   "completion": {
     "max_tokens": 512,
-    "temperature": 0,
+    "temperature": 0.1,
     "top_p": 0.0,
     "presence_penalty": 0.0,
     "frequency_penalty": 0.0

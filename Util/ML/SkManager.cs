@@ -18,12 +18,6 @@ using System.Diagnostics;
 using System.Collections;
 using Microsoft.SemanticKernel.Orchestration;
 using Newtonsoft.Json.Linq;
-using NtApiDotNet.Ndr;
-using NtApiDotNet.Win32;
-using System.Text;
-using System.Printing;
-using System.Threading;
-using System.Linq;
 
 namespace RpcInvestigator.Util.ML
 {
@@ -42,6 +36,7 @@ namespace RpcInvestigator.Util.ML
         public static readonly int s_InitializeSteps =
             PythonEnvironment.s_Steps;
         public static readonly int s_RunSkillSteps = LLMBackend.s_Steps;
+        private readonly Settings m_Settings;
 
         //
         // Whenever a new semantic skill or function is added, this mapping
@@ -71,14 +66,16 @@ namespace RpcInvestigator.Util.ML
         public SkManager (
             Action ProgressUpdate,
             Action<string> UpdateStatus,
-            ArrayList SkillArguments
+            ArrayList SkillArguments,
+            Settings Settings
             )
         {
             m_SemanticFunctionHelpers = new Dictionary<string, SemanticFunctionHelper>();
             m_SkillArguments = SkillArguments;
             m_ProgressUpdate = ProgressUpdate;
             m_UpdateStatus = UpdateStatus;
-            m_Backend = new LLMBackend(null, null, UpdateStatus, ProgressUpdate);
+            m_Backend = new LLMBackend(null, null, UpdateStatus, ProgressUpdate, Settings);
+            m_Settings = Settings;
         }
 
         public void Dispose()
@@ -243,7 +240,7 @@ namespace RpcInvestigator.Util.ML
             string SkillMoniker,
             string ModelLocation,
             string GeneratorName,
-            string Prompt,
+            string Prompt, // only used for Custom skills
             string Input
             )
         {

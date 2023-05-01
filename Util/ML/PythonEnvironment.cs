@@ -382,8 +382,8 @@ root.addHandler(handler)");
                     ("RpcInvestigator.Util.ML", "requirements-gpu.txt"),
                     ("RpcInvestigator.Util.ML.Generators", "dolly.py"),
                     ("RpcInvestigator.Util.ML.Generators", "gpt4all-alpaca-13b-q4.py"),
-                    ("RpcInvestigator.Util.ML.Generators", "alpaca-lora.py"),
                     ("RpcInvestigator.Util.ML.Generators", "generator_config.py"),
+                    ("RpcInvestigator.Util.ML.Generators", "stable-lm-alpaca.py"),
                 };
                 foreach (var tuple in resourceFileNames)
                 {

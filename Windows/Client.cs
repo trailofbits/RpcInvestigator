@@ -68,7 +68,8 @@ namespace RpcInvestigator
             m_SkManager = new SkManager(
                 ProgressUpdate,
                 UpdateStatus,
-                arguments);
+                arguments,
+                m_Settings);
             m_SkManager.Initialize();
 
             //
@@ -444,7 +445,8 @@ namespace RpcInvestigator
             //
             // Depending on the model, a file or folder might be required.
             //
-            if ((string)availableGenerators.SelectedItem == "dolly")
+            if ((string)availableGenerators.SelectedItem == "dolly" ||
+                (string)availableGenerators.SelectedItem == "stable-lm-alpaca")
             {
                 var dialog = new FolderBrowserDialog();
 

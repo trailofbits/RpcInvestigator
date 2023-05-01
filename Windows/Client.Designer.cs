@@ -104,8 +104,8 @@
             // mainSplitContainer.Panel2
             // 
             mainSplitContainer.Panel2.Controls.Add(workbenchTabControl);
-            mainSplitContainer.Size = new System.Drawing.Size(1792, 951);
-            mainSplitContainer.SplitterDistance = 596;
+            mainSplitContainer.Size = new System.Drawing.Size(1790, 977);
+            mainSplitContainer.SplitterDistance = 595;
             mainSplitContainer.TabIndex = 0;
             // 
             // leftTableLayoutPanel
@@ -120,16 +120,16 @@
             leftTableLayoutPanel.RowCount = 2;
             leftTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 36.18657F));
             leftTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 63.81343F));
-            leftTableLayoutPanel.Size = new System.Drawing.Size(596, 951);
+            leftTableLayoutPanel.Size = new System.Drawing.Size(595, 977);
             leftTableLayoutPanel.TabIndex = 2;
             // 
             // outputGroupbox
             // 
             outputGroupbox.Controls.Add(rpcClientOutput);
             outputGroupbox.Dock = System.Windows.Forms.DockStyle.Fill;
-            outputGroupbox.Location = new System.Drawing.Point(3, 347);
+            outputGroupbox.Location = new System.Drawing.Point(3, 356);
             outputGroupbox.Name = "outputGroupbox";
-            outputGroupbox.Size = new System.Drawing.Size(590, 601);
+            outputGroupbox.Size = new System.Drawing.Size(589, 618);
             outputGroupbox.TabIndex = 3;
             outputGroupbox.TabStop = false;
             outputGroupbox.Text = "Output";
@@ -143,7 +143,6 @@
             rpcClientOutput.CharHeight = 18;
             rpcClientOutput.CharWidth = 10;
             rpcClientOutput.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            rpcClientOutput.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             rpcClientOutput.IsReplaceMode = false;
             rpcClientOutput.Location = new System.Drawing.Point(9, 26);
             rpcClientOutput.Name = "rpcClientOutput";
@@ -171,7 +170,7 @@
             rpcServerGroupbox.Dock = System.Windows.Forms.DockStyle.Fill;
             rpcServerGroupbox.Location = new System.Drawing.Point(3, 3);
             rpcServerGroupbox.Name = "rpcServerGroupbox";
-            rpcServerGroupbox.Size = new System.Drawing.Size(590, 338);
+            rpcServerGroupbox.Size = new System.Drawing.Size(589, 347);
             rpcServerGroupbox.TabIndex = 2;
             rpcServerGroupbox.TabStop = false;
             rpcServerGroupbox.Text = "RPC Server";
@@ -266,7 +265,7 @@
             workbenchTabControl.Location = new System.Drawing.Point(0, 0);
             workbenchTabControl.Name = "workbenchTabControl";
             workbenchTabControl.SelectedIndex = 0;
-            workbenchTabControl.Size = new System.Drawing.Size(1192, 951);
+            workbenchTabControl.Size = new System.Drawing.Size(1191, 977);
             workbenchTabControl.TabIndex = 0;
             // 
             // codeTabPage
@@ -275,7 +274,7 @@
             codeTabPage.Location = new System.Drawing.Point(4, 29);
             codeTabPage.Name = "codeTabPage";
             codeTabPage.Padding = new System.Windows.Forms.Padding(3);
-            codeTabPage.Size = new System.Drawing.Size(1184, 918);
+            codeTabPage.Size = new System.Drawing.Size(1183, 944);
             codeTabPage.TabIndex = 0;
             codeTabPage.Text = "Client Code";
             codeTabPage.UseVisualStyleBackColor = true;
@@ -297,12 +296,12 @@
             rightTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 92.9267F));
             rightTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 7.073298F));
             rightTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 25F));
-            rightTableLayoutPanel.Size = new System.Drawing.Size(1178, 912);
+            rightTableLayoutPanel.Size = new System.Drawing.Size(1177, 938);
             rightTableLayoutPanel.TabIndex = 1;
             // 
             // resetButton
             // 
-            resetButton.Location = new System.Drawing.Point(124, 850);
+            resetButton.Location = new System.Drawing.Point(124, 874);
             resetButton.Name = "resetButton";
             resetButton.Size = new System.Drawing.Size(115, 42);
             resetButton.TabIndex = 8;
@@ -324,6 +323,7 @@
             rpcClientSourceCode.Cursor = System.Windows.Forms.Cursors.IBeam;
             rpcClientSourceCode.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
             rpcClientSourceCode.Dock = System.Windows.Forms.DockStyle.Fill;
+            rpcClientSourceCode.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             rpcClientSourceCode.IsReplaceMode = false;
             rpcClientSourceCode.Language = FastColoredTextBoxNS.Language.CSharp;
             rpcClientSourceCode.LeftBracket = '(';
@@ -335,13 +335,13 @@
             rpcClientSourceCode.RightBracket2 = '}';
             rpcClientSourceCode.SelectionColor = System.Drawing.Color.FromArgb(60, 0, 0, 255);
             rpcClientSourceCode.ServiceColors = (FastColoredTextBoxNS.ServiceColors)resources.GetObject("rpcClientSourceCode.ServiceColors");
-            rpcClientSourceCode.Size = new System.Drawing.Size(1172, 841);
+            rpcClientSourceCode.Size = new System.Drawing.Size(1171, 865);
             rpcClientSourceCode.TabIndex = 1;
             rpcClientSourceCode.Zoom = 100;
             // 
             // runButton
             // 
-            runButton.Location = new System.Drawing.Point(3, 850);
+            runButton.Location = new System.Drawing.Point(3, 874);
             runButton.Name = "runButton";
             runButton.Size = new System.Drawing.Size(115, 42);
             runButton.TabIndex = 7;
@@ -351,7 +351,7 @@
             // 
             // copyClientCodeButton
             // 
-            copyClientCodeButton.Location = new System.Drawing.Point(245, 850);
+            copyClientCodeButton.Location = new System.Drawing.Point(245, 874);
             copyClientCodeButton.Name = "copyClientCodeButton";
             copyClientCodeButton.Size = new System.Drawing.Size(111, 42);
             copyClientCodeButton.TabIndex = 9;
@@ -378,7 +378,7 @@
             llmTabPage.Controls.Add(label7);
             llmTabPage.Location = new System.Drawing.Point(4, 29);
             llmTabPage.Name = "llmTabPage";
-            llmTabPage.Size = new System.Drawing.Size(1184, 918);
+            llmTabPage.Size = new System.Drawing.Size(1183, 784);
             llmTabPage.TabIndex = 1;
             llmTabPage.Text = "LLM";
             llmTabPage.UseVisualStyleBackColor = true;
@@ -392,7 +392,6 @@
             llmResponse.CharHeight = 18;
             llmResponse.CharWidth = 10;
             llmResponse.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
-            llmResponse.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             llmResponse.IsReplaceMode = false;
             llmResponse.Location = new System.Drawing.Point(578, 129);
             llmResponse.Name = "llmResponse";
@@ -414,6 +413,7 @@
             inputJson.CharHeight = 18;
             inputJson.CharWidth = 10;
             inputJson.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            inputJson.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             inputJson.IsReplaceMode = false;
             inputJson.Location = new System.Drawing.Point(13, 367);
             inputJson.Name = "inputJson";
@@ -436,6 +436,7 @@
             promptText.CharHeight = 18;
             promptText.CharWidth = 10;
             promptText.DisabledColor = System.Drawing.Color.FromArgb(100, 180, 180, 180);
+            promptText.Font = new System.Drawing.Font("Courier New", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             promptText.IsReplaceMode = false;
             promptText.Location = new System.Drawing.Point(13, 126);
             promptText.Name = "promptText";
@@ -452,7 +453,7 @@
             // 
             availableGenerators.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             availableGenerators.FormattingEnabled = true;
-            availableGenerators.Items.AddRange(new object[] { "dolly", "gpt4all-alpaca-13b-q4" });
+            availableGenerators.Items.AddRange(new object[] { "dolly", "gpt4all-alpaca-13b-q4", "stable-lm-alpaca" });
             availableGenerators.Location = new System.Drawing.Point(143, 9);
             availableGenerators.Name = "availableGenerators";
             availableGenerators.Size = new System.Drawing.Size(227, 28);
@@ -575,16 +576,16 @@
             // 
             statusStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { toolStripProgressBar1, toolStripStatusLabel1 });
-            statusStrip1.Location = new System.Drawing.Point(0, 929);
+            statusStrip1.Location = new System.Drawing.Point(0, 955);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new System.Drawing.Size(1792, 22);
+            statusStrip1.Size = new System.Drawing.Size(1790, 22);
             statusStrip1.TabIndex = 2;
             statusStrip1.Text = "statusStrip1";
             // 
             // toolStripProgressBar1
             // 
             toolStripProgressBar1.Name = "toolStripProgressBar1";
-            toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
+            toolStripProgressBar1.Size = new System.Drawing.Size(100, 14);
             toolStripProgressBar1.Visible = false;
             // 
             // toolStripStatusLabel1
@@ -597,7 +598,7 @@
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1792, 951);
+            ClientSize = new System.Drawing.Size(1790, 977);
             Controls.Add(statusStrip1);
             Controls.Add(mainSplitContainer);
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");

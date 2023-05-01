@@ -7,14 +7,23 @@
 #
 
 #
-# Source:  https://huggingface.co/databricks/dolly-v1-6b
+# Source:  https://huggingface.co/stabilityai/stablelm-tuned-alpha-3b
 #
 import time
 from argparse import ArgumentParser, BooleanOptionalAction
-from generator_config import dolly_config
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from generator_config import stable_lm_config
+from transformers import AutoModelForCausalLM, AutoTokenizer, StoppingCriteria, StoppingCriteriaList
 import torch
 
+class StopOnTokens(StoppingCriteria):
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+        stop_ids = [50278, 50279, 50277, 1, 0]
+        for stop_id in stop_ids:
+            if input_ids[0][-1] == stop_id:
+                return True
+        return False
+
+system_prompt = """<|SYSTEM|># StableLM Tuned (Alpha version)"""
 MODEL_MAX_PROMPT_LEN = 512 # this is a guess
 DEFAULT_NEW_TOKENS = 100
 
@@ -41,28 +50,35 @@ def init_model(config):
     print(f"Mem needed: {model.get_memory_footprint() / 1024 / 1024 / 1024:.2f} GB")
     config.model = model
     config.tokenizer = tokenizer
-    config.pipeline = pipeline(
-        task="text-generation",
-        model=model,
-        tokenizer=tokenizer,
-        max_new_tokens=config.max_new_tokens)
 
 def generate(config, prompt):
+    device = get_device(config)
     print(f'generate: Generating from prompt len={len(prompt)}')
     if len(prompt) > MODEL_MAX_PROMPT_LEN:
         raise Exception(f'Prompt is too long, max={MODEL_MAX_PROMPT_LEN}')
     with torch.no_grad():
-        return config.pipeline(prompt)[0]['generated_text']
+        prompt = f"{system_prompt}<|USER|>{prompt}<|ASSISTANT|>"
+        inputs = config.tokenizer(prompt, return_tensors="pt").to(device)
+        tokens = config.model.generate(
+        **inputs,
+        max_new_tokens=config.max_new_tokens,
+        temperature=config.temperature,
+        do_sample=True,
+        stopping_criteria=StoppingCriteriaList([StopOnTokens()])
+        )
+        # Extract out only the completion tokens
+        completion_tokens = tokens[0][inputs['input_ids'].size(1):]
+        return config.tokenizer.decode(completion_tokens, skip_special_tokens=True)
 
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument("--model-location", type=str, required=True)
     parser.add_argument("--prompt-location", type=str, required=True)
     parser.add_argument("--max-new-tokens", type=int, default=DEFAULT_NEW_TOKENS, required=False)
-    parser.add_argument("--temperature", type=float, default=0.0, required=False)
+    parser.add_argument("--temperature", type=float, default=0.1, required=False)
     parser.add_argument("--force-cpu", action=BooleanOptionalAction, type=bool, default=False, required=False)
     args = parser.parse_args()
-    config = dolly_config(
+    config = stable_lm_config(
         args.model_location,
         args.max_new_tokens,
         args.temperature,
