@@ -297,13 +297,22 @@ namespace RpcInvestigator
             ToggleMenu(false);
             var location = Path.Combine(new string[] { Settings.m_LogDir,
                  "library-text-"+Path.GetRandomFileName() + ".txt" });
+            
             File.WriteAllText(location, m_Library.ToString());
+            
+            if (m_TabManager.GetSelectedTabPage() is RpcProcedureList)
+            {
+                RpcProcedureList rpcProcedureList = m_TabManager.GetSelectedTabPage() as RpcProcedureList;
+                rpcProcedureList.ExportProceduresToFile(location);
+            }
+
             var psi = new ProcessStartInfo();
             psi.FileName = location;
             psi.WorkingDirectory = Directory.GetParent(location).FullName;
             psi.UseShellExecute = true;
             Process.Start(psi);
             ToggleMenu(true);
+
         }
 
         private void rPCSnifferToolStripMenuItem_Click(object sender, EventArgs e)
