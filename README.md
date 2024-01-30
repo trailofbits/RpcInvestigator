@@ -104,6 +104,8 @@ Also, due to the move from the insecure BinaryFormatter class to protobuf-net, R
 
 If you're experiencing random crashes in RPC Investigator, you might find a solution in asking your administrator to tweak your EDR. We have found that some EDRs do not behave sanely with JIT'ed languages.
 
+In some cases RPC Investigator is detected as malicious by EDRs, including some false positives on Virus Total. This is a known issue. That's because RPC Investigator contains NtObjectManager - a package created by James Forshaw that's known to be detected (false positive) by a lot of EDRs, including Windows Defender.
+
 ## Development Environment
 
 1. Install [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/), make sure to select the **.NET Desktop Development** workflow.
