@@ -16,6 +16,8 @@ using NtApiDotNet;
 using NtApiDotNet.Ndr;
 using System.Diagnostics;
 using RpcInvestigator.Util;
+using System.Windows.Controls;
+using System.IO;
 
 namespace RpcInvestigator
 {
@@ -112,6 +114,36 @@ namespace RpcInvestigator
                 return 0;
             }
             return m_Listview.Objects.Cast<NdrProcedureDefinition>().Count();
+        }
+
+        public void ExportProceduresToFile(string filePath)
+        {
+            string procInfoStr = new string("");
+            foreach (NdrProcedureDefinition proc in m_Listview.Objects.Cast<NdrProcedureDefinition>())
+            {
+                procInfoStr += proc.Name + "\n";
+                procInfoStr += "\tParams\n";
+                
+                foreach (var param in proc.Params)
+                {
+                    procInfoStr += "\t\t" + param.ToString() + "\n";
+                }
+
+                procInfoStr += "\tReturn Value: " + proc.ReturnValue.ToString() + "\n";
+                procInfoStr += "\tHandle:" + proc.Handle.ToString() + "\n";
+                procInfoStr += "\tRpc Flags:" + proc.RpcFlags.ToString() + "\n";
+                procInfoStr += "\tProc Num:" + proc.ProcNum.ToString() + "\n";
+                procInfoStr += "\tStack Size:" + proc.StackSize.ToString() + "\n";
+                procInfoStr += "\tHas Async Handle:" + proc.HasAsyncHandle.ToString() + "\n";
+                procInfoStr += "\tDispatch Function:" + proc.DispatchFunction.ToString() + "\n";
+                procInfoStr += "\tDispatch Offset:" + proc.DispatchOffset.ToString() + "\n";
+                procInfoStr += "\tInterpreter Flags:" + proc.InterpreterFlags.ToString() + "\n";
+            }
+            procInfoStr += "\n";
+            FileStream file = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None);
+            byte[] strBytes = Encoding.UTF8.GetBytes(procInfoStr);
+            file.Write(strBytes, 0, strBytes.Length);
+            file.Close();
         }
 
         private static string BuildTabTitle(string Name)

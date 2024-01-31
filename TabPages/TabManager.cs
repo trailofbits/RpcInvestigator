@@ -80,6 +80,10 @@ namespace RpcInvestigator.TabPages
             return endpointsTab;
         }
 
+        public TabPage GetSelectedTabPage()
+        {
+            return m_TabControl.SelectedTab;
+        }
         public RpcProcedureList LoadRpcProceduresTab(string Name, List<NdrProcedureDefinition> Procedures)
         {
             TabPage tab;
